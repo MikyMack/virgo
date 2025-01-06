@@ -1,0 +1,26 @@
+
+.product-card {
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
+}
+
+.product-card img {
+    transition: transform 1s ease-out;
+}
+
+.product-card img:hover {
+    transform: scale(1.1); 
+}
+
+/* Style for active tab */
+.active-tab {
+    color: #ffffff;
+    background-color: #b8ccc6;
+    padding: 3px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}

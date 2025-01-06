@@ -1,0 +1,12 @@
+.brandsImage img {
+    /* Initial clip-path setup */
+    clip-path: inset(0);
+    transition: transform 0.5s ease-in-out, clip-path 0.5s ease-in-out;
+  }
+  
+  .brandsImage img:hover {
+    /* Apply a more pronounced inward movement with clip-path */
+    transform: scale(1.1);
+    clip-path: inset(10%);
+  }
+  

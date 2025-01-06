@@ -1,0 +1,85 @@
+/* src/components/banner.css */
+
+/* Swiper Container */
+.product-slider {
+    position: relative;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+    background-color: transparent; 
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    cursor: pointer;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 5px;
+    color: #ffffff;
+    background: transparent ;
+    background-color: transparent;/* Set arrow color to dark for visibility */
+}
+
+.swiper-button-next {
+    right: 10px; /* Adjust position for next button */
+}
+
+.swiper-button-prev {
+    left: 10px; /* Adjust position for prev button */
+}
+
+/* Hover Effects */
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+
+    color: #c2c2c2;
+   
+}
+
+.custom-pagination {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    position: absolute;
+    bottom: 10px;
+    width: 50%;
+    z-index: 10;
+}
+
+.custom-bullet {
+    position: relative;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.custom-bullet::after {
+    content: attr(data-index); 
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #6e6d6d;
+    transition: width 0.4s ease;
+}
+
+.custom-bullet-active {
+    color: #333;
+}
+
+.custom-bullet-active::after {
+    width: 100%;
+}

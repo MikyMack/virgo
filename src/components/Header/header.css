@@ -1,0 +1,179 @@
+/* Sticky Header */
+.header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Desktop Navigation Menu Items */
+.nav-item {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-item::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  left: 0;
+  bottom: -2px;
+  transition: width 0.3s ease-in-out;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+/* Responsive Menu Toggle */
+@media (max-width: 1024px) {
+  .lg\\:hidden {
+    display: none;
+  }
+
+  /* Mobile Menu Styles */
+  nav {
+    display: block;
+    background-color: white;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    transition: transform 1s ease-in-out;
+  }
+
+  nav ul {
+    padding: 1rem;
+  }
+
+  nav ul li {
+    padding: 8px 0;
+  }
+
+  nav ul li:hover {
+    background-color: #f9f9f9;
+  }
+
+  button {
+    outline: none;
+  }
+}
+
+/* CSS for DesktopNav dropdowns */
+
+/* Ensures that dropdowns are hidden by default */
+nav ul li ul {
+  display: none;
+  position: absolute;
+  top: 100%; 
+  left: 0;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
+  z-index: 9999;
+  min-width: 200px;
+}
+
+nav ul li:hover > ul {
+  display: block;
+}
+
+/* Style for individual dropdown items */
+nav ul li ul li {
+  position: relative;
+}
+
+nav ul li ul li p {
+  padding: 10px 20px;
+  white-space: nowrap;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+nav ul li ul li p:hover {
+  background-color: #b8ccc6;
+}
+
+/* Second level dropdowns positioned relative to their parent */
+nav ul li ul li ul {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  background-color: white;
+  padding: 10px 0;
+  min-width: 200px;
+}
+
+nav ul li ul li:hover > ul {
+  display: block;
+}
+
+/* Mobile Navigation */
+.nav-item {
+  cursor: pointer;
+}
+
+.nav-item button {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+/* Mobile Dropdown Styling */
+.nav-item ul {
+  display: none;
+  position: relative; 
+  padding-left: 1rem;
+}
+
+/* Show dropdown below the parent item */
+.nav-item.active ul {
+  display: block;
+}
+
+/* Sub-menu dropdown styles */
+.nav-item ul li ul {
+  display: none;
+  position: relative;
+  padding-left: 1rem; /* Indent sub-menu items */
+}
+
+/* Display sub-menus when the parent item is active */
+.nav-item.active ul li ul {
+  display: block;
+}
+
+/* Smooth transition for dropdowns */
+.nav-item ul,
+.nav-item ul li ul {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 1024px) {
+  .nav-item ul li ul {
+    position: relative;
+    top: 0;
+    left: 0; 
+    padding-left: 1rem; 
+  }
+}
+
+.mobilenav-link {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
+  padding: 10px 0;
+  min-width: 200px;
+}
