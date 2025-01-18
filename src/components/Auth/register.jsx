@@ -3,6 +3,9 @@ import imag1 from "../../assets/breadcrumps/loginbread.jpg";
 import { FaGooglePlusSquare, FaFacebookSquare } from "react-icons/fa";
 import { verifyotp,sendOtp } from '../../actions/useractions/auth/registeraction';
 import { useNavigate } from 'react-router-dom';
+import { GoogleAuthProvider, FacebookAuthProvider , signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase-config"; // Adjust the path to your Firebase configuration
+
 
 
 export default function Register() {
@@ -39,6 +42,39 @@ export default function Register() {
      }
     } catch (error) {
       console.error('OTP verification failed:', error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+  
+      // Get user details
+      const user = result.user;
+      console.log("Google Sign-In successful:", user);
+  
+      // Redirect or perform further actions
+      navigate("/");
+    } catch (error) {
+      console.error("Google Sign-In failed:", error.message);
+    }
+  };
+  
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      // Get user details
+      const user = result.user;
+      console.log("Facebook Sign-In successful:", user);
+
+      // Redirect or perform further actions
+      navigate("/");
+    } catch (error) {
+      console.error("Facebook Sign-In failed:", error.message);
     }
   };
 
@@ -85,11 +121,11 @@ export default function Register() {
           </form>
           <p className="mb-5">or Login with</p>
           <div className='flex flex-row justify-between'>
-            <button className="mb-5 px-5 py-2 w-1/2 bg-red-500 text-white flex items-center justify-center mr-2">
+            <button className="mb-5 px-5 py-2 w-1/2 bg-red-500 text-white flex items-center justify-center mr-2"  onClick={handleGoogleSignIn}>
               <FaGooglePlusSquare className="mr-2 text-4xl" /> Google
             </button>
             <button className="mb-5 px-5 py-2 w-1/2 bg-blue-600 text-white flex items-center justify-center ml-2">
-              <FaFacebookSquare className="mr-2 text-4xl" /> Facebook
+              <FaFacebookSquare className="mr-2 text-4xl"  onClick={handleFacebookSignIn} /> Facebook
             </button>
           </div>
         </div>
