@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import imag1 from "../../assets/breadcrumps/loginbread.jpg";
 import { FaGooglePlusSquare, FaFacebookSquare } from "react-icons/fa";
 import { verifyotp,sendOtp } from '../../actions/useractions/auth/registeraction';
@@ -15,33 +15,67 @@ export default function Register() {
     otp: ''
   });
   const [otpSent, setOtpSent] = useState(false);
-
+  const [Loading, setLoading] = useState(false);
+  const [Error, setError]= useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const otpInputRef = useRef(null);
+  //INPUT CHANGE HANDLER
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
+// OTP SENDING LOGIC
   const handleSendOtp = async (e) => {
     e.preventDefault();
+    if( !formData.email.includes('@'))
+    {
+      setError('Please Enter a Valid Email Address.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
     try {
       await sendOtp({ email: formData.email });
       setOtpSent(true);
+      setSuccessMessage('Otp has been sent to your email.');
+      setTimeout(()=> otpInputRef.current?.focus(), 300);
     } catch (error) {
+      setError('Failed to send OTP. Please try again.');
       console.error('Failed to send OTP:', error);
     }
+    finally{
+      setLoading(false);
+    }
   };
-
+// OTP VERIFICATION LOGIC
   const handleVerifyOtp = async (e) => {
-    e.preventDefault();    
+    e.preventDefault();   
+    if (!/^\d{6}$/.test(formData.otp))
+      {
+        setError('Please enter a valid 6-digit OTP.');
+        return;
+      } 
+      setLoading(true);
+      setError('');
+      setSuccessMessage('');
     try {
       const response = await verifyotp(formData);
      if(response.message==="Login successful") {
-      navigate("/")
+      setSuccessMessage('OTP Verified successfully! Redirecting...');
+      setTimeout(()=>navigate("/"),2000);
+     }
+     else{
+      setError('Invalid OTP.Please try again.');
      }
     } catch (error) {
+      setError('OTP verification failed. please try again.');
       console.error('OTP verification failed:', error);
+    }
+    finally {
+      setLoading(false);
     }
   };
 

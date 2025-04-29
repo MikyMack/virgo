@@ -34,12 +34,12 @@ export default function MainRoutes() {
                     <Route path="/blogs" element={<BlogsPage />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/candleholders" element={<Candleholderspage />} />
-                    <Route path="/productdetails" element={<ProductDetailsVirgo />} />
+                    <Route path="/productdetails/:id" element={<ProductDetailsVirgo />} />
                     <Route path="/wishlist" element={<Wishlist />} />
                    
                   
                     <Route path="/admin/AdminSignin" element={<AdminSignin />} />
-                    <Route element={<ProtectedRoutes />}>
+                    
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/products" element={<ProductsAdmin />} />
                     <Route path="/admin/category" element={<AdminCategories />} />
@@ -47,7 +47,7 @@ export default function MainRoutes() {
                     <Route path="/admin/customers" element={<AdminCustomers />} />
                     <Route path="/admin/coupons" element={<AdminCoupons />} />
                     <Route path="/admin/banners" element={<AdminBanners />} />
-                    </Route>
+                    
                    
                 </Routes>
             </Suspense>
