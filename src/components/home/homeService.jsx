@@ -1,7 +1,7 @@
 import img1 from "../../assets/banner/homeDec1.webp"
 import img2 from "../../assets/banner/homedec2.jpg"
 import img3 from "../../assets/banner/homedec3.jpg"
-
+import { Link } from "react-router-dom";
 
 const HomeDecorSection = () => {
     return (
@@ -21,7 +21,6 @@ const HomeDecorSection = () => {
                         View More
                     </button>
                 </div>
-                  
                 </div>
             </div>
 
@@ -57,17 +56,17 @@ const HomeDecorSection = () => {
                                 className="w-full h-full object-contain"
                             />
                         </div>
-
                     </div>
                     <div className="mt-4">
-                        <button
-                            className="inline-block bg-[#b8ccc6] text-white py-4 px-4 text-sm font-medium hover:bg-gray-800 transition duration-300"
-                        >
-                            TO SHOP
-                        </button>
+                        <Link to="/shop">
+                            <button
+                                className="inline-block bg-[#b8ccc6] text-white py-4 px-4 text-sm font-medium hover:bg-gray-800 transition duration-300"
+                            >
+                                TO SHOP
+                            </button>
+                        </Link>
                     </div>
                 </div>
-
             </div>
         </section>
     );

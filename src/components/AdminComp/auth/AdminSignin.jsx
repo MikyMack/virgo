@@ -22,6 +22,7 @@ export default function AdminSignin() {
     try {
       await sendOtp({ email: formData.email });
       setOtpSent(true);
+      alert('OTP sent successfully!');
     } catch (error) {
       console.error('Failed to send OTP:', error);
     }
@@ -40,13 +41,18 @@ export default function AdminSignin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Admin Sign In</h2>
-        <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-gray-100 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 transform transition-all hover:shadow-2xl">
+        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800 tracking-tight">
+          Admin Sign In
+        </h2>
+        <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-6">
+          <div>
+            <label 
+              className="block text-sm font-medium text-gray-700 mb-2" 
+              htmlFor="email"
+            >
+              Email Address
             </label>
             <input
               type="email"
@@ -54,14 +60,18 @@ export default function AdminSignin() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200"
+              placeholder="Enter your email"
               required
             />
           </div>
           {otpSent && (
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="otp">
-                OTP
+            <div>
+              <label 
+                className="block text-sm font-medium text-gray-700 mb-2" 
+                htmlFor="otp"
+              >
+                Enter OTP
               </label>
               <input
                 type="text"
@@ -69,19 +79,20 @@ export default function AdminSignin() {
                 name="otp"
                 value={formData.otp}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all duration-200"
+                placeholder="Enter 6-digit OTP"
                 maxLength="6"
                 minLength="1"
                 required
               />
             </div>
           )}
-          <div className="flex items-center justify-between">
+          <div>
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
             >
-              {otpSent ? 'VERIFY OTP' : 'SEND OTP'}
+              {otpSent ? 'Verify OTP' : 'Send OTP'}
             </button>
           </div>
         </form>

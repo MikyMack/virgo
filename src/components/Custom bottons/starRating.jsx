@@ -1,13 +1,17 @@
 import { IoMdStar } from "react-icons/io";
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 
-export default function StarRating({ totalStars = 5, rating = 0 }) {
+export default function StarRating({ totalStars = 5, rating = 4 }) {
+  const [userRating, setUserRating] = useState(rating);
+
   return (
-    <div className="flex">
+    <div className="flex justify-end">
       {Array.from({ length: totalStars }, (_, index) => (
         <IoMdStar
           key={index}
-          className={`cursor-pointer text-2xl ${index < rating ? 'text-yellow-700' : 'text-gray-300'}`}
+          onClick={() => setUserRating(index + 1)}
+          className={`cursor-pointer text-2xl ${index < userRating ? 'text-yellow-500' : 'text-gray-300'}`}
         />
       ))}
     </div>

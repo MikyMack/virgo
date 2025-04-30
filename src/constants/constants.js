@@ -40,7 +40,7 @@ export const products = [
         category: 'Candlestick',
         title: 'wall handles',
         price: '62',
-        images: [img5, img6, img7],
+        images: [img5, img6, img7, img5],
         type: 'bestseller',
         colors: ['#19a8e3', '#bfbfbf','#50b948','#ff7900'] 
     },
@@ -49,7 +49,7 @@ export const products = [
         category: 'Candlestick',
         title: 'Stick candles',
         price: '17',
-        images: [img8, img9, img10],
+        images: [img8, img9, img10,img8],
         type: 'sales',
         colors: ['#19a8e3', '#bfbfbf','#50b948','#49271d'] 
     },
@@ -103,7 +103,7 @@ export const products = [
         category: 'Candlestick',
         title: 'candles',
         price: '17',
-        images: [im1, im2],
+        images: [im1, im2,im1,im2],
         type: 'sales',
         colors: ['#19a8e3', '#bfbfbf','#50b948','black'] 
     },
@@ -112,7 +112,7 @@ export const products = [
         category: 'Candlestick',
         title: 'candles',
         price: '17',
-        images: [im3, im4],
+        images: [im3, im4,im3,im4],
         type: 'featured',
         colors: ['#19a8e3', '#bfbfbf','#50b948','black'] 
     },
@@ -121,7 +121,7 @@ export const products = [
         category: 'Jar',
         title: 'Jar with Lantern',
         price: '35',
-        images: [jar1, jar2, jar3],
+        images: [jar1, jar2, jar3,jar1],
         type: 'bestseller',
         colors: ['#19a8e3', '#bfbfbf','#50b948','#49271d'] 
     },{
@@ -137,7 +137,7 @@ export const products = [
         category: 'Jar Candle',
         title: 'Asin',
         price: '35',
-        images: [asin1, asin2, asin3],
+        images: [asin1, asin2, asin3,asin1],
         type: 'bestseller',
         colors: ['#19a8e3', '#bfbfbf','#50b948','#49271d'] 
     }

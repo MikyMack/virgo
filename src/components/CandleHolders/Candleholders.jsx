@@ -34,14 +34,14 @@ export default function Candleholders() {
   // Change products per page
   const handleProductsPerPageChange = (number) => {
     setProductsPerPage(number);
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
   return (
     <section className="font-abc">
       <div className="relative h-1/2 font-abc">
         <img className="w-full h-[300px] md:h-[300px] lg:h-[300px] object-cover" src={img1} alt="breadcrump" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-          <h1 className="text-[30px] lg:text-[60px] md:text-[50px]">Candle Holders</h1>
+          <h1 className="text-[30px] lg:text-[60px] md:text-[50px]">CANDLE HOLDERS</h1>
           <p className="text-2xl py-2 pb-4">Decorative Candle Holders</p>
           <p className="text-xl text-secondary">HOME<span className="text-white"> / CANDLE HOLDERS</span></p>
         </div>

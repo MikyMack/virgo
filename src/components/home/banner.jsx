@@ -18,37 +18,39 @@ import { useRef } from "react";
 import bg1 from "../../assets/banner/portrait1.jpg"
 import bg2 from "../../assets/banner/portrait2.jpg"
 
+const products = [
+  {
+      id: 1,
+      title: 'Two Bowls',
+      description: 'Marble and Brass.',
+      price: '250.00',
+      image: b1,
+      buttonText: 'GO TO SHOP',
+      leftImage: bg1,
+  },
+  {
+      id: 2,
+      title: 'Candle Set',
+      description: 'Elegant and Stylish.',
+      price: '180.00',
+      image: b2,
+      buttonText: 'BUY NOW',
+      leftImage: bg2,
+  },
+  {
+      id: 3,
+      title: 'Candle Set',
+      description: 'Elegant and Stylish.',
+      price: '180.00',
+      image: b3,
+      buttonText: 'BUY NOW',
+      leftImage: bg1,
+  },
+];
+
 export default function Banner() {
     const swiperRef = useRef(null);
-    const products = [
-        {
-            id: 1,
-            title: 'Two Bowls',
-            description: 'Marble and Brass.',
-            price: '250.00',
-            image: b1,
-            buttonText: 'GO TO SHOP',
-            leftImage: bg1,
-        },
-        {
-            id: 2,
-            title: 'Candle Set',
-            description: 'Elegant and Stylish.',
-            price: '180.00',
-            image: b2,
-            buttonText: 'BUY NOW',
-            leftImage: bg2,
-        },
-        {
-            id: 3,
-            title: 'Candle Set',
-            description: 'Elegant and Stylish.',
-            price: '180.00',
-            image: b3,
-            buttonText: 'BUY NOW',
-            leftImage: bg1,
-        },
-    ];
+   
 
     return (
         <div className="mx-auto my-1 xl:container font-abc">

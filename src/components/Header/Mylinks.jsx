@@ -1,175 +1,190 @@
 export const links = [
     {
-        name: "candles",
+        name: "Candles",
         submenu: true,
         sublinks: [
             {
-                Head: "jar",
+                Head: "Jar",
                 sublink: [
-                    { name: "Ritu Collections", link: "/" },
-                    { name: "Mana Collections", link: "/" },
-                    { name: "Sia Collections", link: "/" },
-                    { name: "Wooden Collections", link: "/" },
+                    { name: "Ritu Collections", link: "/ProductDetails/3" },
+                    { name: "Mana Collections", link: "/ProductDetails" },
+                    { name: "Sia Collections", link: "/ProductDetails" },
+                    { name: "Wooden Collections", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Floating",
                 sublink: [
-                    { name: "Floating candles", link: "/" },
+                    { name: "Floating Candles", link: "/ProductDetails" },
                 ]
             },
             {
-                Head: "decorative candles",
+                Head: "Decorative",
                 sublink: [
-                    { name: "Decorative candles", link: "/" },
+                    { name: "Decorative Candles", link: "/ProductDetails" },
                 ]
             },
             {
-                Head: "pillar",
+                Head: "Pillar",
                 sublink: [
-                    { name: "Embossed Pillar Candles", link: "/" },
-                    { name: "Plain Pillar Candles", link: "/" },
-                    { name: "Ribbed Pillar", link: "/" },
-                    { name: "Pillar For Occassions", link: "/" },
+                    { name: "Embossed Pillar Candles", link: "/ProductDetails" },
+                    { name: "Plain Pillar Candles", link: "/ProductDetails" },
+                    { name: "Ribbed Pillar", link: "/ProductDetails" },
+                    { name: "Pillar For Occasions", link: "/ProductDetails" },
                 ]
             },
             {
-                Head: "tea lights",
+                Head: "Tea Lights",
                 sublink: [
-                    { name: "tea lights", link: "/" },
-                    { name: "scented", link: "/" },
-                    { name: "unscented", link: "/" },
-                    { name: "tea lights with topping", link: "/" },
+                    { name: "Tea Lights", link: "/ProductDetails" },
+                    { name: "Scented", link: "/ProductDetails" },
+                    { name: "Unscented", link: "/ProductDetails" },
+                    { name: "Tea Lights With Topping", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Stick Candles",
                 sublink: [
-                    { name: "Tapered", link: "/" },
-                    { name: "Spiral", link: "/" },
-                    { name: "Plain", link: "/" },
+                    { name: "Tapered", link: "/ProductDetails" },
+                    { name: "Spiral", link: "/ProductDetails/3" },
+                    { name: "Plain", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Religious & Festive",
                 sublink: [
-                    { name: "Baby shower Candles", link: "/" },
-                    { name: "Holy Communion Candles", link: "/" },
-                    { name: "Wedding Set", link: "/" },
-                    { name: "Christmas", link: "/" },
-                    { name: "Baptism", link: "/" },
-                    { name: "Valentine Day", link: "/" },
-                    { name: "Diwali", link: "/" },
+                    { name: "Baby Shower Candles", link: "/ProductDetails" },
+                    { name: "Holy Communion Candles", link: "/ProductDetails" },
+                    { name: "Wedding Set", link: "/ProductDetails" },
+                    { name: "Christmas", link: "/ProductDetails" },
+                    { name: "Baptism", link: "/ProductDetails" },
+                    { name: "Valentine's Day", link: "/ProductDetails" }, // Updated
+                    { name: "Diwali", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Gifting",
                 sublink: [
-                    { name: "Return Gifts", link: "/" },
-                    { name: "For your loved ones", link: "/" },
-                    { name: "Mother's Day", link: "/" },
-                    { name: "Father's Day", link: "/" },
-                    { name: "Friendship Day", link: "/" },
-                    { name: "Women's Day", link: "/" },
-                    { name: "Teacher's Day", link: "/" },
-                    { name: "Diwali", link: "/" },
+                    { name: "Return Gifts", link: "/ProductDetails" },
+                    { name: "For Your Loved Ones", link: "/ProductDetails" },
+                    { name: "Mother's Day", link: "/ProductDetails" },
+                    { name: "Father's Day", link: "/ProductDetails" },
+                    { name: "Friendship Day", link: "/ProductDetails" },
+                    { name: "Women's Day", link: "/ProductDetails" },
+                    { name: "Teacher's Day", link: "/ProductDetails" },
+                    { name: "Diwali", link: "/ProductDetails" },
                 ]
             },
         ]
     },
-    { name: "candle holder",
+    {
+        name: "Candle Holder",
         submenu: true,
         sublinks: [
             {
                 Head: "Pillar",
                 sublink: [
-                    { name: "Wood", link: "/" },
-                    { name: "Metal", link: "/" },
-                    { name: "Glass", link: "/" },
+                    { name: "Wood", link: "/ProductDetails" },
+                    { name: "Metal", link: "/ProductDetails" },
+                    { name: "Glass", link: "/ProductDetails" },
                 ]
             },
             {
-                Head: "Tea light",
+                Head: "Tea Light",
                 sublink: [
-                    { name: "Glass", link: "/" },
-                    { name: "Metal", link: "/" },
-                    { name: "Wooden", link: "/" },
-                    { name: "Ceramic", link: "/" },
-                    { name: "Concrete", link: "/" },
+                    { name: "Glass", link: "/ProductDetails" },
+                    { name: "Metal", link: "/ProductDetails" },
+                    { name: "Wooden", link: "/ProductDetails" },
+                    { name: "Ceramic", link: "/ProductDetails" },
+                    { name: "Concrete", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Stick",
                 sublink: [
-                    { name: "Stick", link: "/" },
+                    { name: "Stick", link: "/ProductDetails" },
                 ]
             }
         ]
-     },
-    { name: "wax sachets",
+    },
+    {
+        name: "Sachets",
         submenu: true,
         sublinks: [
             {
                 Head: "Round",
                 sublink: [
-                    { name: "Round", link: "/" },
+                    { name: "Round", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Rectangle",
                 sublink: [
-                    { name: "Rectangle", link: "/" },
+                    { name: "Rectangle", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Rings",
                 sublink: [
-                    { name: "Rings", link: "/" },
+                    { name: "Rings", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Hearts",
                 sublink: [
-                    { name: "Hearts", link: "/" },
+                    { name: "Hearts", link: "/ProductDetails" },
                 ]
             }
         ]
-     },
-    { name: "diyas",
+    },
+    {
+        name: "Charms & Melts",
+        submenu: true,
+        sublinks: [
+            {
+                Head: "Charms & Melts",
+                sublink: [
+                    { name: "Charms & Melts", link: "/ProductDetails" },
+                ]
+            },
+        ]
+    },
+    {
+        name: "Diyas",
         submenu: true,
         sublinks: [
             {
                 Head: "Terracotta",
                 sublink: [
-                    { name: "Terracotta", link: "/" },
+                    { name: "Terracotta", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Metal",
                 sublink: [
-                    { name: "Metal", link: "/" },
+                    { name: "Metal", link: "/ProductDetails" },
                 ]
             },
             {
                 Head: "Ceramic",
                 sublink: [
-                    { name: "Ceramic", link: "/" },
+                    { name: "Ceramic", link: "/ProductDetails" },
                 ]
             }
         ]
-     },
-    { name: "table lamp",
+    },
+    {
+        name: "Table Tops",
         submenu: true,
         sublinks: [
             {
                 Head: "Glass-Mosaic",
                 sublink: [
-                    { name: "Mushrooms", link: "/" },
-                    { name: "Purses", link: "/" },
-                    { name: "Dholaks", link: "/" },
+                    { name: "Mushrooms", link: "/ProductDetails" },
+                    { name: "Purses", link: "/ProductDetails" },
+                    { name: "Dholaks", link: "/ProductDetails" },
                 ]
             },
-         
         ]
-     }
-]
+    }
+];
