@@ -67,7 +67,7 @@ export default function Navigation() {
     }, [location.pathname, menus])
 
     return (
-        <div className="fixed bottom-0 w-full z-50 overflow-hidden">
+        <div className="fixed bottom-0 w-full shadow-lg z-50 overflow-hidden">
         <div className="bg-white shadow-lg rounded-t-xl">
       
           
