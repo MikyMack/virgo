@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import logo from '../../assets/logo/logo.webp';
 import { HiOutlineShoppingCart } from 'react-icons/hi2';
 import { FiMenu } from 'react-icons/fi';
@@ -13,6 +13,34 @@ import "slick-carousel/slick/slick-theme.css";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
   const settings = {
     dots: false,
@@ -89,20 +117,37 @@ export default function Header() {
             <img src={logo} alt="Woodmart" className="h-20 w-auto" />
           </Link>
 
-          {/* Register/Sign In */}
+          {/* User Profile or Register/Sign In */}
           <div className="flex space-x-6 items-center font-semibold">
             <div className="hidden lg:flex space-x-6 items-center">
-              <Link to="/register">
-                <div className="flex space-x-2">
-                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                    Login
-                  </p>
-                  <span className="text-gray-400">/</span>
-                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                    Register
-                  </p>
+              {user ? (
+                <div
+                  className="relative flex items-center space-x-2 group"
+                  onMouseEnter={() => setDropdownOpen(true)}
+                  ref={dropdownRef}
+                >
+                  <img src={user.photoURL} alt={user.displayName} className="w-20 rounded-full cursor-pointer" />
+                  {dropdownOpen && (
+                    <div className="absolute top-full mt-2 right-0 bg-white shadow-lg rounded-md">
+                      <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left" onClick={handleLogout}>
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </Link>
+              ) : (
+                <Link to="/register">
+                  <div className="flex space-x-2">
+                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                      Login
+                    </p>
+                    <span className="text-gray-400">/</span>
+                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                      Register
+                    </p>
+                  </div>
+                </Link>
+              )}
               <Link to="/wishlist">
                 <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
               </Link>
