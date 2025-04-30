@@ -15,7 +15,7 @@ export default function Brandslogo() {
 
     return (
         <div className="mx-auto xl:container md:py-10">
-            <div className="flex flex-col lg:flex-row items-center justify-center pt-10 gap-8">
+            <div className="flex flex-col lg:flex-row overflow-hidden items-center justify-center pt-10 gap-8">
                 {/* First Image Container */}
                 <div className="relative brandsImage w-full lg:w-auto">
                     <img
