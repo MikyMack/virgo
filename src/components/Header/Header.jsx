@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import logo from '../../assets/logo/logo.webp';
 import { HiOutlineShoppingCart } from 'react-icons/hi2';
 import { FiMenu } from 'react-icons/fi';
-import { CiSearch, CiHeart } from 'react-icons/ci';
+import { CiSearch, CiHeart, CiSquareRemove } from 'react-icons/ci';
 import DesktopNav from './DesktopNav';
 import MobileNav from './MobileNav';
 import './header.css';
@@ -13,33 +13,88 @@ import "slick-carousel/slick/slick-theme.css";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [showCategories, setShowCategories] = useState(false);
+  const searchRef = useRef(null);
+  const inputRef = useRef(null);
+  const headerRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-    }
-
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
+    const updateCounts = () => {
+      try {
+        const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+        const wishlistItems = JSON.parse(localStorage.getItem('wishlist')) || [];
+        const searches = JSON.parse(localStorage.getItem('recentSearches')) || [];
+        setCartCount(cartItems.reduce((total, item) => total + (item.quantity || 1), 0));
+        setWishlistCount(wishlistItems.length);
+        setRecentSearches(searches);
+      } catch (error) {
+        console.error('Error reading localStorage:', error);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    updateCounts();
+
+    const handleStorageChange = (e) => {
+      if (['cart', 'wishlist', 'recentSearches'].includes(e.key)) {
+        updateCounts();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      originalSetItem.apply(this, arguments);
+      if (['cart', 'wishlist', 'recentSearches'].includes(key)) {
+        updateCounts();
+      }
+    };
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('storage', handleStorageChange);
+      localStorage.setItem = originalSetItem;
     };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearch(false);
+      }
+    };
+
+    if (showSearch) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSearch]);
+
+  useEffect(() => {
+    if (showSearch && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showSearch]);
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      const updatedSearches = [
+        searchTerm,
+        ...recentSearches.filter(item => item !== searchTerm).slice(0, 4)
+      ];
+      localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+      setRecentSearches(updatedSearches);
+      setShowSearch(false);
+      window.location.href = `/search?q=${encodeURIComponent(searchTerm)}`;
+    }
+  };
+
+  const clearRecentSearches = () => {
+    localStorage.removeItem('recentSearches');
+    setRecentSearches([]);
   };
 
   const settings = {
@@ -53,35 +108,15 @@ export default function Header() {
     arrows: false,
     pauseOnHover: false,
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-          infinite: true,
-          dots: false
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          initialSlide: 1
-        }
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1
-        }
-      }
+      { breakpoint: 1024, settings: { slidesToShow: 2, slidesToScroll: 1, infinite: true, dots: false } },
+      { breakpoint: 768, settings: { slidesToShow: 1, slidesToScroll: 1, initialSlide: 1 } },
+      { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } }
     ]
   };
 
   return (
-    <div>
+    <div className="relative">
+      {/* Announcement Bar */}
       <div className='bg-[#717274] text-white uppercase lg:py-2 py-1'>
         <Slider {...settings}>
           <div className="flex items-center justify-center text-center">
@@ -92,81 +127,227 @@ export default function Header() {
           </div>
         </Slider>
       </div>
-      <header className="mx-auto flex flex-col items-center justify-between py-1 px-6 border-b border-gray-200 xl:container font-abc">
+
+      {/* Main Header */}
+      <header className="mx-auto flex flex-col items-center justify-between py-1 px-6 border-b border-gray-200 xl:container font-abc" ref={headerRef}>
         <div className="w-full flex items-center justify-between mb-4">
-          {/* Mobile Menu Icon */}
-          <div className="flex items-center lg:hidden">
-            <FiMenu
-              className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            />
+          {/* Logo and Search */}
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Brand Logo" className="h-16 w-auto" />
+            </Link>
+            
+            <div className="hidden lg:block relative">
+              <div 
+                className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
+                onClick={() => setShowSearch(true)}
+              >
+                <CiSearch className="w-5 h-5 text-gray-900" />
+              </div>
+            </div>
           </div>
 
-          {/* Search Input */}
-          <div className="hidden lg:flex items-center w-1/4">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full px-4 py-2 border-b border-gray-300 rounded-md outline-none"
-            />
-            <CiSearch className="text-gray-700 hover:text-black w-6 h-6 ml-2 cursor-pointer" />
-          </div>
+          {/* Center Logo Text */}
+          <div className="flex-1 flex justify-center items-center">
+    <span className="text-4xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 bg-clip-text text-transparent tracking-tighter"
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          letterSpacing: '-0.03em',
+          fontWeight: 900,
+          color: '#1px 1px 2px rgba(0,0,0,0.1)', // Darker text color for contrast
+        }}>
+    VIRGO
+  </span>
+</div>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center justify-center w-full">
-            <img src={logo} alt="Woodmart" className="h-20 w-auto" />
-          </Link>
 
-          {/* User Profile or Register/Sign In */}
+          {/* Mobile Menu */}
+          {/* Mobile Menu */}
+<div className="flex items-center lg:hidden space-x-4"> {/* Added space-x-4 */}
+  {/* Mobile Search Button */}
+  <div 
+    className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
+    onClick={() => setShowSearch(true)}
+  >
+    <CiSearch className="w-5 h-5 text-gray-700" />
+  </div>
+  
+  <FiMenu
+    className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer"
+    onClick={() => setIsMenuOpen(!isMenuOpen)}
+  />
+</div>
+
+          {/* Account and Cart */}
           <div className="flex space-x-6 items-center font-semibold">
             <div className="hidden lg:flex space-x-6 items-center">
-              {user ? (
-                <div
-                  className="relative flex items-center space-x-2 group"
-                  onMouseEnter={() => setDropdownOpen(true)}
-                  ref={dropdownRef}
-                >
-                  <img src={user.photoURL} alt={user.displayName} className="w-20 rounded-full cursor-pointer" />
-                  {dropdownOpen && (
-                    <div className="absolute top-full mt-2 right-0 bg-white shadow-lg rounded-md">
-                      <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left" onClick={handleLogout}>
-                        Logout
-                      </button>
-                    </div>
+              <Link to="/register">
+                <div className="flex space-x-2">
+                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                    LOGIN
+                  </p>
+                  <span className="text-gray-400">/</span>
+                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                    REGISTER
+                  </p>
+                </div>
+              </Link>
+              <Link to="/wishlist">
+                <div className="relative">
+                  <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
+                      {wishlistCount}
+                    </span>
                   )}
                 </div>
-              ) : (
-                <Link to="/register">
-                  <div className="flex space-x-2">
-                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                      Login
-                    </p>
-                    <span className="text-gray-400">/</span>
-                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                      Register
-                    </p>
-                  </div>
-                </Link>
-              )}
-              <Link to="/wishlist">
-                <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
               </Link>
             </div>
             <Link to='/cart'>
               <div className="relative">
                 <HiOutlineShoppingCart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
-                <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
-                  0
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cartCount}
+                  </span>
+                )}
               </div>
             </Link>
           </div>
         </div>
+
+        {/* Navigation */}
         <div className="header-sticky w-full">
           <DesktopNav />
           <MobileNav isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
         </div>
       </header>
+
+      {/* Enhanced Search Overlay - Scrollbar removed */}
+      {showSearch && (
+        <div 
+          className="fixed inset-0 bg-white bg-opacity-95 z-50 pt-32 px-4 overflow-hidden"
+          ref={searchRef}
+        >
+          <div className="max-w-3xl mx-auto h-[calc(100vh-8rem)] overflow-y-auto">
+            {/* Search Input */}
+            <div className="relative border-b-2 border-black pb-3">
+              <CiSearch className="absolute left-0 top-1 w-6 h-6 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search for products, categories..."
+                className="w-full pl-10 pr-12 py-2 text-lg bg-transparent focus:outline-none placeholder-gray-400"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleSearch}
+                ref={inputRef}
+                autoComplete="off"
+              />
+              <button 
+                onClick={() => setShowSearch(false)}
+                className="absolute right-0 top-1 text-gray-500 hover:text-black transition-colors"
+              >
+                <CiSquareRemove className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Search Content */}
+            <div className="mt-8">
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && !searchTerm && (
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-medium uppercase tracking-wider">Recent Searches</h3>
+                    <button 
+                      onClick={clearRecentSearches}
+                      className="text-xs text-gray-500 hover:text-black"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSearchTerm(search)}
+                        className="px-3 py-1.5 bg-gray-100 rounded-full text-sm hover:bg-gray-200 transition-colors"
+                      >
+                        {search}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Categories */}
+              <div className="mb-8">
+                <h3 
+                  className="text-sm font-medium uppercase tracking-wider mb-4 cursor-pointer flex items-center"
+                  onClick={() => setShowCategories(!showCategories)}
+                >
+                  Categories
+                  <span className="ml-2 text-xs">{showCategories ? '−' : '+'}</span>
+                </h3>
+                {showCategories && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Candles', 'Diffusers', 'Room Sprays', 'Gift Sets', 'Accessories'].map(category => (
+                      <Link
+                        key={category}
+                        to={`/category/${category.toLowerCase().replace(' ', '-')}`}
+                        className="text-sm hover:text-black transition-colors py-1"
+                        onClick={() => setShowSearch(false)}
+                      >
+                        {category}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Search Results */}
+              {searchTerm && (
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-4">
+                    Results for "{searchTerm}"
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      { id: 1, name: 'Vanilla Dream Candle', category: 'Signature Candles' },
+                      { id: 2, name: 'Rose Petal Candle', category: 'Floral Collection' },
+                      { id: 3, name: 'Sandalwood Diffuser', category: 'Reed Diffusers' },
+                      { id: 4, name: 'Lavender Room Spray', category: 'Home Fragrance' }
+                    ]
+                    .filter(item => 
+                      item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      item.category.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map(item => (
+                      <Link 
+                        key={item.id}
+                        to={`/product/${item.id}`}
+                        className="block py-2 hover:bg-gray-50 -mx-2 px-2 transition-colors"
+                        onClick={() => setShowSearch(false)}
+                      >
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">{item.category}</div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <Link 
+                    to="/shop"  
+                    className="inline-block mt-6 text-sm font-medium uppercase tracking-wider border-b border-black pb-1 hover:text-black transition-colors"
+                    onClick={() => setShowSearch(false)}
+                  >
+                    View All Products
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

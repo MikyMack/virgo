@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { FaUserCircle, FaCog, FaSignOutAlt, FaBars, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaUserCircle, FaCog, FaSignOutAlt, FaBars, FaEye, FaEdit, FaTrash, FaTimes, FaPlus } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import AdminHeader from '../Header/AdminHeader';
-import bgim from "../../../assets/banner/dashboarbg.jpg"
 
 export default function AdminCustomers() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -10,8 +9,17 @@ export default function AdminCustomers() {
     const [searchTerm, setSearchTerm] = useState('');
     const [editPopupOpen, setEditPopupOpen] = useState(false);
     const [editCustomer, setEditCustomer] = useState(null);
+    const [viewPopupOpen, setViewPopupOpen] = useState(false);
+    const [viewCustomer, setViewCustomer] = useState(null);
+    const [addPopupOpen, setAddPopupOpen] = useState(false);
+    const [newCustomer, setNewCustomer] = useState({ id: '', joiningDate: '', name: '', email: '', phone: '' });
+    const [emailError, setEmailError] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+    const [nameError, setNameError] = useState('');
+    const [idError, setIdError] = useState('');
+    const [dateError, setDateError] = useState('');
 
-    const customers = [
+    const initialCustomers = [
         { id: 1, joiningDate: '2024-01-01', name: 'Sara', email: 'sara@example.com', phone: '1234567890' },
         { id: 2, joiningDate: '2024-02-01', name: 'Jijomon', email: 'jijomon@example.com', phone: '0987654321' },
         { id: 3, joiningDate: '2024-03-01', name: 'Ajmalsha', email: 'ajmalsha@example.com', phone: '1122334455' },
@@ -22,11 +30,23 @@ export default function AdminCustomers() {
         { id: 8, joiningDate: '2024-08-01', name: 'Shaji Pappan', email: 'shaji@example.com', phone: '6677889900' },
     ];
 
-    const filteredCustomers = customers.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.includes(searchTerm)
-    );
+    const [customers, setCustomers] = useState(() => {
+        const savedCustomers = localStorage.getItem('customers');
+        const parsedCustomers = savedCustomers ? JSON.parse(savedCustomers) : initialCustomers;
+        return parsedCustomers.sort((a, b) => a.id - b.id); // Sort initially by id
+    });
+
+    useEffect(() => {
+        localStorage.setItem('customers', JSON.stringify(customers));
+    }, [customers]);
+
+    const filteredCustomers = customers
+        .filter(customer => 
+            customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.phone.includes(searchTerm)
+        )
+        .sort((a, b) => a.id - b.id); // Sort filtered customers by id
 
     const handleResetSearch = () => {
         setSearchTerm('');
@@ -35,101 +55,568 @@ export default function AdminCustomers() {
     const handleEditCustomer = (customer) => {
         setEditCustomer(customer);
         setEditPopupOpen(true);
+        setEmailError('');
+        setPhoneError('');
+        setNameError('');
+    };
+
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const validatePhone = (phone) => {
+        const phoneRegex = /^[0-9\s-]*$/;
+        return phoneRegex.test(phone) && phone.replace(/[\s-]/g, '').length > 0;
+    };
+
+    const validateName = (name) => {
+        const nameRegex = /^[A-Za-z\s]+$/;
+        return nameRegex.test(name) && name.trim().length > 0;
+    };
+
+    const validateId = (id) => {
+        const idNum = parseInt(id, 10);
+        return !isNaN(idNum) && idNum > 0 && !customers.some(customer => customer.id === idNum);
+    };
+
+    const validateDate = (date) => {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(date)) return false;
+        const parsedDate = new Date(date);
+        return !isNaN(parsedDate.getTime()) && parsedDate <= new Date();
     };
 
     const handleSaveCustomer = () => {
-        // Implement save logic here
-        setEditPopupOpen(false);
+        let isValid = true;
+
+        if (!validateEmail(editCustomer.email)) {
+            setEmailError('Please enter a valid email address');
+            isValid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!validatePhone(editCustomer.phone)) {
+            setPhoneError('Please enter a valid phone number (numbers only)');
+            isValid = false;
+        } else {
+            setPhoneError('');
+        }
+
+        if (!validateName(editCustomer.name)) {
+            setNameError('Please enter a valid name (letters only)');
+            isValid = false;
+        } else {
+            setNameError('');
+        }
+
+        if (isValid) {
+            const updatedCustomers = customers.map(customer => 
+                customer.id === editCustomer.id ? editCustomer : customer
+            ).sort((a, b) => a.id - b.id); // Sort after editing
+            setCustomers(updatedCustomers);
+            setEditPopupOpen(false);
+            setEditCustomer(null);
+        }
     };
 
     const handleCancelEdit = () => {
         setEditPopupOpen(false);
         setEditCustomer(null);
+        setEmailError('');
+        setPhoneError('');
+        setNameError('');
+    };
+
+    const handleViewCustomer = (customer) => {
+        setViewCustomer(customer);
+        setViewPopupOpen(true);
+    };
+
+    const handleCloseView = () => {
+        setViewPopupOpen(false);
+        setViewCustomer(null);
+    };
+
+    const handleDeleteCustomer = (customerId) => {
+        if (window.confirm('Are you sure you want to delete this customer?')) {
+            const updatedCustomers = customers.filter(customer => customer.id !== customerId).sort((a, b) => a.id - b.id); // Sort after deletion
+            setCustomers(updatedCustomers);
+        }
+    };
+
+    const handleAddCustomer = () => {
+        setAddPopupOpen(true);
+        setNewCustomer({ id: '', joiningDate: '', name: '', email: '', phone: '' });
+        setEmailError('');
+        setPhoneError('');
+        setNameError('');
+        setIdError('');
+        setDateError('');
+    };
+
+    const handleSaveNewCustomer = () => {
+        let isValid = true;
+
+        if (!validateId(newCustomer.id)) {
+            setIdError('Please enter a unique, positive integer ID');
+            isValid = false;
+        } else {
+            setIdError('');
+        }
+
+        if (!validateDate(newCustomer.joiningDate)) {
+            setDateError('Please enter a valid date (YYYY-MM-DD) not in the future');
+            isValid = false;
+        } else {
+            setDateError('');
+        }
+
+        if (!validateName(newCustomer.name)) {
+            setNameError('Please enter a valid name (letters only)');
+            isValid = false;
+        } else {
+            setNameError('');
+        }
+
+        if (!validateEmail(newCustomer.email)) {
+            setEmailError('Please enter a valid email address');
+            isValid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!validatePhone(newCustomer.phone)) {
+            setPhoneError('Please enter a valid phone number (numbers only)');
+            isValid = false;
+        } else {
+            setPhoneError('');
+        }
+
+        if (isValid) {
+            const updatedCustomers = [...customers, { 
+                id: parseInt(newCustomer.id, 10), 
+                joiningDate: newCustomer.joiningDate, 
+                name: newCustomer.name, 
+                email: newCustomer.email, 
+                phone: newCustomer.phone 
+            }].sort((a, b) => a.id - b.id); // Sort after adding
+            setCustomers(updatedCustomers);
+            setAddPopupOpen(false);
+            setNewCustomer({ id: '', joiningDate: '', name: '', email: '', phone: '' });
+        }
+    };
+
+    const handleCancelAdd = () => {
+        setAddPopupOpen(false);
+        setNewCustomer({ id: '', joiningDate: '', name: '', email: '', phone: '' });
+        setEmailError('');
+        setPhoneError('');
+        setNameError('');
+        setIdError('');
+        setDateError('');
     };
 
     return (
-        <div className="flex flex-col md:flex-row font-abc">
-            <div className='md:w-1/3 lg:w-1/3 xl:w-1/5'>
+        <div className="min-h-screen bg-gray-50">
+            {/* Sidebar */}
+            <div className={`fixed inset-y-0 left-0 w-72 bg-white shadow-xl transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out z-40`}>
                 <AdminHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
             </div>
-            <div className="w-full p-5 py-10" style={{ backgroundImage: `url(${bgim})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                <header className="flex items-center justify-between mb-5 md:mb-10">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">Customers Management</h1>
+
+            {/* Overlay for mobile sidebar */}
+            {menuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                />
+            )}
+
+            {/* Main Content */}
+            <div className="md:ml-72">
+                {/* Header */}
+                <header className="bg-white shadow-md px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+                    <div className="flex items-center gap-4">
+                        <button
+                            className="md:hidden text-gray-600 hover:text-gray-800 transition-colors"
+                            onClick={() => setMenuOpen(!menuOpen)}
+                        >
+                            <FaBars size={24} />
+                        </button>
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Customers Management</h1>
+                    </div>
                     <div className="relative">
-                        <button className="flex items-center space-x-2 text-white hover:text-gray-300" onClick={() => setProfileMenuOpen(!profileMenuOpen)}>
-                            <FaUserCircle className="text-2xl" />
-                            <span>Profile</span>
+                        <button
+                            className="flex items-center space-x-2 p-2 rounded-full bg-gray-300 transition-colors"
+                            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                        >
+                            <FaUserCircle className="text-2xl text-indigo-600" />
+                            <span className="hidden md:inline text-gray-700">Profile</span>
                         </button>
                         {profileMenuOpen && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
-                                <Link to="/admin/settings" className="flex items-center space-x-2 px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                    <FaCog /> <span>Settings</span>
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-20">
+                                <Link to="/admin/settings" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <FaCog className="text-black" />
+                                    <span>Settings</span>
                                 </Link>
-                                <Link to="/logout" className="flex items-center space-x-2 px-4 py-2 text-gray-800 hover:bg-gray-100">
-                                    <FaSignOutAlt /> <span>Logout</span>
+                                <Link to="/logout" className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <FaSignOutAlt className="text-red-700" />
+                                    <span>Logout</span>
                                 </Link>
                             </div>
                         )}
                     </div>
-                    <button className="md:hidden text-gray-800" onClick={() => setMenuOpen(!menuOpen)}>
-                        <FaBars />
-                    </button>
                 </header>
-                <header className="flex flex-col md:flex-col mb-5">
-                    <div className="space-x-2 flex items-center justify-between">
-                        <input type="text" placeholder="Search by name/email/phone" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border-b outline-none p-2 rounded" />
-                        <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded" onClick={handleResetSearch}>Reset Search</button>
+
+                {/* Main Content */}
+                <main className="p-6 max-w-7xl mx-auto">
+                    {/* Controls */}
+                    <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+                        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, or phone"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full sm:w-64 px-4 py-2 bg-gray-200 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-800 outline-none transition-colors"
+                            />
+                            <div className="flex gap-3">
+                                <button
+                                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                                    onClick={handleResetSearch}
+                                >
+                                    Reset Search
+                                </button>
+                                <button
+                                    className="bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                    onClick={handleAddCustomer}
+                                >
+                                    <FaPlus size={18} />
+                                    Add Customer
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </header>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th className="py-2 px-4">ID</th>
-                                <th className="py-2 px-4">Joining Date</th>
-                                <th className="py-2 px-4">Name</th>
-                                <th className="py-2 px-4">Email</th>
-                                <th className="py-2 px-4">Phone</th>
-                                <th className="py-2 px-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredCustomers?.map(customer => (
-                                <tr key={customer.id}>
-                                    <td className="border px-4 py-2 text-center">{customer.id}</td>
-                                    <td className="border px-4 py-2 text-center">{customer.joiningDate}</td>
-                                    <td className="border px-4 py-2 text-center">{customer.name}</td>
-                                    <td className="border px-4 py-2 text-center">{customer.email}</td>
-                                    <td className="border px-4 py-2 text-center">{customer.phone}</td>
-                                    <td className="border px-4 py-2 text-center">
-                                        <button className="text-blue-500 hover:text-blue-700 px-2 py-1 rounded text-xl"><FaEye /></button>
-                                        <button className="text-green-500 hover:text-green-700 px-2 py-1 rounded text-xl" onClick={() => handleEditCustomer(customer)}><FaEdit /></button>
-                                        <button className="text-red-500 hover:text-red-700 px-2 py-1 rounded text-xl"><FaTrash /></button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+
+                    {/* Customers Table */}
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">ID</th>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">Joining Date</th>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">Name</th>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">Email</th>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">Phone</th>
+                                        <th className="py-3 px-4 text-left text-base font-medium text-gray-900">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredCustomers.length > 0 ? (
+                                        filteredCustomers.map((customer) => (
+                                            <tr key={customer.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                                                <td className="py-4 px-4 text-sm text-gray-600">{customer.id}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600">{customer.joiningDate}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600">{customer.name}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600">{customer.email}</td>
+                                                <td className="py-4 px-4 text-sm text-gray-600">{customer.phone}</td>
+                                                <td className="py-4 px-4 flex gap-2">
+                                                    <button
+                                                        onClick={() => handleViewCustomer(customer)}
+                                                        className="p-2 text-blue-500 hover:bg-blue-100 rounded-full transition-colors"
+                                                    >
+                                                        <FaEye size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEditCustomer(customer)}
+                                                        className="p-2 text-green-500 hover:bg-green-100 rounded-full transition-colors"
+                                                    >
+                                                        <FaEdit size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCustomer(customer.id)}
+                                                        className="p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                                                    >
+                                                        <FaTrash size={18} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="py-4 px-4 text-center text-gray-500">No customers found</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </main>
+
+                {/* Edit Customer Modal */}
                 {editPopupOpen && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="bg-white p-5 rounded shadow-lg">
-                            <h2 className="text-xl font-bold mb-4">Edit Customer</h2>
-                            <div className="mb-4">
-                                <label className="block text-gray-700">Name</label>
-                                <input type="text" value={editCustomer.name} onChange={(e) => setEditCustomer({ ...editCustomer, name: e.target.value })} className="border p-2 rounded w-full" />
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Edit Customer Details</h2>
+                                <button
+                                    onClick={handleCancelEdit}
+                                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    <FaTimes size={24} />
+                                </button>
                             </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-700">Email</label>
-                                <input type="email" value={editCustomer.email} onChange={(e) => setEditCustomer({ ...editCustomer, email: e.target.value })} className="border p-2 rounded w-full" />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                                    <input
+                                        type="text"
+                                        value={editCustomer.name}
+                                        onChange={(e) => {
+                                            setEditCustomer({ ...editCustomer, name: e.target.value });
+                                            if (e.target.value && !validateName(e.target.value)) {
+                                                setNameError('Please enter a valid name (letters only)');
+                                            } else {
+                                                setNameError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${nameError ? 'border-red-500' : ''}`}
+                                    />
+                                    {nameError && (
+                                        <p className="text-red-500 text-sm mt-1">{nameError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        type="email"
+                                        value={editCustomer.email}
+                                        onChange={(e) => {
+                                            setEditCustomer({ ...editCustomer, email: e.target.value });
+                                            if (e.target.value && !validateEmail(e.target.value)) {
+                                                setEmailError('Please enter a valid email address');
+                                            } else {
+                                                setEmailError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${emailError ? 'border-red-500' : ''}`}
+                                    />
+                                    {emailError && (
+                                        <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                    <input
+                                        type="text"
+                                        value={editCustomer.phone}
+                                        onChange={(e) => {
+                                            setEditCustomer({ ...editCustomer, phone: e.target.value });
+                                            if (e.target.value && !validatePhone(e.target.value)) {
+                                                setPhoneError('Please enter a valid phone number (numbers only)');
+                                            } else {
+                                                setPhoneError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${phoneError ? 'border-red-500' : ''}`}
+                                    />
+                                    {phoneError && (
+                                        <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-700">Phone</label>
-                                <input type="text" value={editCustomer.phone} onChange={(e) => setEditCustomer({ ...editCustomer, phone: e.target.value })} className="border p-2 rounded w-full" />
+                            <div className="flex justify-end gap-4 mt-6">
+                                <button
+                                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    onClick={handleCancelEdit}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-6 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                                    onClick={handleSaveCustomer}
+                                    disabled={!!emailError || !!phoneError || !!nameError}
+                                >
+                                    Save
+                                </button>
                             </div>
-                            <div className="flex justify-end space-x-2">
-                                <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded" onClick={handleCancelEdit}>Cancel</button>
-                                <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={handleSaveCustomer}>Save</button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Add Customer Modal */}
+                {addPopupOpen && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Add New Customer</h2>
+                                <button
+                                    onClick={handleCancelAdd}
+                                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    <FaTimes size={24} />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ID</label>
+                                    <input
+                                        type="number"
+                                        value={newCustomer.id}
+                                        onChange={(e) => {
+                                            setNewCustomer({ ...newCustomer, id: e.target.value });
+                                            if (e.target.value && !validateId(e.target.value)) {
+                                                setIdError('Please enter a unique, positive integer ID');
+                                            } else {
+                                                setIdError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${idError ? 'border-red-500' : ''}`}
+                                    />
+                                    {idError && (
+                                        <p className="text-red-500 text-sm mt-1">{idError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Joining Date</label>
+                                    <input
+                                        type="date"
+                                        value={newCustomer.joiningDate}
+                                        onChange={(e) => {
+                                            setNewCustomer({ ...newCustomer, joiningDate: e.target.value });
+                                            if (e.target.value && !validateDate(e.target.value)) {
+                                                setDateError('Please enter a valid date (YYYY-MM-DD) not in the future');
+                                            } else {
+                                                setDateError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${dateError ? 'border-red-500' : ''}`}
+                                    />
+                                    {dateError && (
+                                        <p className="text-red-500 text-sm mt-1">{dateError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                                    <input
+                                        type="text"
+                                        value={newCustomer.name}
+                                        onChange={(e) => {
+                                            setNewCustomer({ ...newCustomer, name: e.target.value });
+                                            if (e.target.value && !validateName(e.target.value)) {
+                                                setNameError('Please enter a valid name (letters only)');
+                                            } else {
+                                                setNameError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${nameError ? 'border-red-500' : ''}`}
+                                    />
+                                    {nameError && (
+                                        <p className="text-red-500 text-sm mt-1">{nameError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        type="email"
+                                        value={newCustomer.email}
+                                        onChange={(e) => {
+                                            setNewCustomer({ ...newCustomer, email: e.target.value });
+                                            if (e.target.value && !validateEmail(e.target.value)) {
+                                                setEmailError('Please enter a valid email address');
+                                            } else {
+                                                setEmailError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${emailError ? 'border-red-500' : ''}`}
+                                    />
+                                    {emailError && (
+                                        <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                    <input
+                                        type="text"
+                                        value={newCustomer.phone}
+                                        onChange={(e) => {
+                                            setNewCustomer({ ...newCustomer, phone: e.target.value });
+                                            if (e.target.value && !validatePhone(e.target.value)) {
+                                                setPhoneError('Please enter a valid phone number (numbers only)');
+                                            } else {
+                                                setPhoneError('');
+                                            }
+                                        }}
+                                        className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors ${phoneError ? 'border-red-500' : ''}`}
+                                    />
+                                    {phoneError && (
+                                        <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-4 mt-6">
+                                <button
+                                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    onClick={handleCancelAdd}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-6 py-2 bg-indigo-800 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                                    onClick={handleSaveNewCustomer}
+                                    disabled={!!emailError || !!phoneError || !!nameError || !!idError || !!dateError}
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* View Customer Modal */}
+                {viewPopupOpen && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl w-full max-w-md p-6 shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Customer Details</h2>
+                                <button
+                                    onClick={handleCloseView}
+                                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    <FaTimes size={24} />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ID</label>
+                                    <p className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">{viewCustomer.id}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Joining Date</label>
+                                    <p className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">{viewCustomer.joiningDate}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                                    <p className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">{viewCustomer.name}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <p className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">{viewCustomer.email}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                                    <p className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50">{viewCustomer.phone}</p>
+                                </div>
+                            </div>
+                            <div className="flex justify-end mt-6">
+                                <button
+                                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    onClick={handleCloseView}
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>

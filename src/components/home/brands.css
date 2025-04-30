@@ -9,4 +9,59 @@
     transform: scale(1.1);
     clip-path: inset(10%);
   }
+  .hexagon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background-color: #b8ccc6;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
   
+  .hexagon:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  .animate-fade-in {
+    animation: fadeIn 1.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  /* Parallax background for Swiper */
+.parallax-bg {
+  background: linear-gradient(to top, rgba(74, 46, 27, 0.7) 0%, transparent 100%);
+}
+
+/* Magnetic CTA Button */
+.cta-button {
+  --tx: 0;
+  --ty: 0;
+  transform: translate(var(--tx), var(--ty));
+  transition: transform 0.3s ease-out, background-color 0.3s, color 0.3s;
+}
+
+/* Trust grid hover effect */
+.grid div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(74, 46, 27, 0.1);
+}
+/* Custom scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Swiper creative effect adjustments */
+.swiper-slide {
+  opacity: 0.8 !important;
+  transition: opacity 0.3s;
+}
+.swiper-slide-active {
+  opacity: 1 !important;
+}
+
+/* Product hover effect */
+.group:hover .group-hover\:scale-105 {
+  transform: scale(1.05);
+}
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
