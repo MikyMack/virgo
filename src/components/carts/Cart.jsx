@@ -3,6 +3,8 @@ import { FaPlus, FaMinus, FaGift } from 'react-icons/fa';
 import { MdDeleteForever } from 'react-icons/md';
 import { LiaRupeeSignSolid } from 'react-icons/lia';
 import bgimg from "../../assets/breadcrumps/cartbread.jpg";
+import { Link } from 'react-router-dom';
+import empty from '../../assets/icons/empty.png'
 
 export default function Cart() {
     const [cartItems, setCartItems] = useState([]);
@@ -85,69 +87,79 @@ export default function Cart() {
                     <span className="font-bold">Congratulations! You have unlocked FREE SHIPPING!</span>
                 )}
             </div>
-
-            <div className="p-6 flex">
-                <div className="w-2/3">
-                    <h1 className="text-3xl font-bold mb-6 text-center">Your Cart</h1>
-                    {cartItems.length > 0 ? (
-                        <div className="flex flex-wrap gap-4 justify-center max-h-[500px] overflow-y-auto">
-                            {cartItems.map((product, index) => (
-                                <div key={index} className="border rounded-2xl overflow-hidden shadow-xl w-64 relative transform hover:scale-105 transition-all duration-300">
-                                    <button 
-                                        className="absolute top-2 right-2 text-red-500 text-2xl group hover:bg-red-600 hover:text-white p-2 rounded-full transition-all duration-300" 
-                                        onClick={() => handleDeleteItem(product.id)}
-                                        title="Remove from cart"
-                                    >
-                                        <MdDeleteForever className="group-hover:opacity-100 opacity-75" />
-                                    </button>
-                                    <img 
-                                        src={product.image} 
-                                        alt={product.title} 
-                                        className="w-full h-40 object-contain rounded-t-2xl" 
-                                    />
-                                    <div className="p-4">
-                                        <h3 className="text-lg font-semibold mb-1">{product.title}</h3>
-                                        <p className="text-gray-600 mb-1">₹{product.total || product.price}</p>
-                                        <div className="flex items-center justify-start mb-3 space-x-3">
-                                            <button onClick={() => handleQuantityChange(product.id, -1)} className="text-red-500 text-xl"><FaMinus /></button>
-                                            <p className="text-gray-500">Quantity: {product.quantity}</p>
-                                            <button onClick={() => handleQuantityChange(product.id, 1)} className="text-green-500 text-xl"><FaPlus /></button>
-                                        </div>
-                                        <div className="flex justify-center mt-3">
-                                            <button 
-                                                className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-6 py-2 rounded-md hover:opacity-90 w-auto mt-2 text-sm"
-                                                onClick={() => handleMoveToWishlist(product)}
-                                            >
-                                                Move to Wishlist
-                                            </button>
-                                        </div>
-                                    </div>
+            <div className="p-6 flex flex-col items-center">
+    <h1 className="text-3xl font-bold mb-6 text-center">Your Cart</h1>
+    {cartItems.length > 0 ? (
+        <div className="flex w-full">
+            <div className="w-2/3">
+                <div className="flex flex-wrap gap-4 justify-center max-h-[500px] overflow-y-auto">
+                    {cartItems.map((product, index) => (
+                        <div key={index} className="border rounded-2xl overflow-hidden shadow-xl w-64 relative transform hover:scale-105 transition-all duration-300">
+                            <button 
+                                className="absolute top-2 right-2 text-red-500 text-2xl group hover:bg-red-600 hover:text-white p-2 rounded-full transition-all duration-300" 
+                                onClick={() => handleDeleteItem(product.id)}
+                                title="Remove from cart"
+                            >
+                                <MdDeleteForever className="group-hover:opacity-100 opacity-75" />
+                            </button>
+                            <img 
+                                src={product.image} 
+                                alt={product.title} 
+                                className="w-full h-40 object-contain rounded-t-2xl" 
+                            />
+                            <div className="p-4">
+                                <h3 className="text-lg font-semibold mb-1">{product.title}</h3>
+                                <p className="text-gray-600 mb-1">₹{product.total || product.price}</p>
+                                <div className="flex items-center justify-start mb-3 space-x-3">
+                                    <button onClick={() => handleQuantityChange(product.id, -1)} className="text-red-500 text-xl"><FaMinus /></button>
+                                    <p className="text-gray-500">Quantity: {product.quantity}</p>
+                                    <button onClick={() => handleQuantityChange(product.id, 1)} className="text-green-500 text-xl"><FaPlus /></button>
                                 </div>
-                            ))}
+                                <div className="flex justify-center mt-3">
+                                    <button 
+                                        className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-6 py-2 rounded-md hover:opacity-90 w-auto mt-2 text-sm"
+                                        onClick={() => handleMoveToWishlist(product)}
+                                    >
+                                        Move to Wishlist
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    ) : (
-                        <p className="text-gray-500 text-center text-3xl font-bold mt-20">Your cart is empty.</p>
-                    )}
-                </div>
-               <div className="w-1/4 border rounded-2xl overflow-hidden shadow-xl ml-6 mt-4 h-[500px] flex flex-col justify-center p-6 bg-cover" >
-                    <h2 className="text-2xl font-bold mb-4 text-center">CART TOTALS</h2>
-                    <div className="flex justify-between py-2">
-                        <h3>Subtotal:</h3>
-                        <p className="font-bold">₹{cartTotal}</p>
-                    </div>
-                    <div className="flex justify-between py-2">
-                        <h3>Shipping:</h3>
-                        <p className="font-bold">₹{shipping}</p>
-                    </div>
-                    <div className="flex justify-between py-2">
-                        <h3>Total:</h3>
-                        <p className="font-bold">₹{totalAmount}</p>
-                    </div>
-                    <div className="flex justify-center mt-4">
-                        <button className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-4 py-2 rounded-md hover:opacity-90 w-auto">Proceed to Checkout</button>
-                    </div>
+                    ))}
                 </div>
             </div>
+            
+            {/* Checkout section - only shown when cart has items */}
+            <div className="w-1/4 border rounded-2xl overflow-hidden shadow-xl ml-6 mt-4 h-[500px] flex flex-col justify-center p-6 bg-cover">
+                <h2 className="text-2xl font-bold mb-4 text-center">CART TOTALS</h2>
+                <div className="flex justify-between py-2">
+                    <h3>Subtotal:</h3>
+                    <p className="font-bold">₹{cartTotal}</p>
+                </div>
+                <div className="flex justify-between py-2">
+                    <h3>Shipping:</h3>
+                    <p className="font-bold">₹{shipping}</p>
+                </div>
+                <div className="flex justify-between py-2">
+                    <h3>Total:</h3>
+                    <p className="font-bold">₹{totalAmount}</p>
+                </div>
+                <div className="flex justify-center mt-4">
+                    <button className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-4 py-2 rounded-md hover:opacity-90 w-auto">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    ) : (
+        <div className="flex flex-col items-center justify-center w-full mt-10">
+            <img className=' h-[300px] md:h-[400px] object-cover' src={empty} alt="" />
+            <p className="text-gray-500 text-center text-3xl font-bold mt-5 mb-4">Your cart is empty.</p>
+            <Link to={'/shop'}>
+        <button className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-6 py-2 rounded-md hover:opacity-90 mt-6">
+                Continue Shopping
+            </button></Link>
+        </div>
+    )}
+</div>
         </div>
     );
 }

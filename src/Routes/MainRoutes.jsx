@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import Wishlist from "../pages/Wishlist/Wishlist";
 import AdminSignin from "../components/AdminComp/auth/AdminSignin";
 import ProtectedRoutes from "../utils/ProtectedRoutes";
+import Profile from "../components/Profile/Profile";
 
 const Home = lazy(() => import("../pages/Home/Home"));
 const Account = lazy(() => import("../pages/Account/Account"));
@@ -36,6 +37,7 @@ export default function MainRoutes() {
                     <Route path="/candleholders" element={<Candleholderspage />} />
                     <Route path="/productdetails/:id" element={<ProductDetailsVirgo />} />
                     <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/profile" element={<Profile />} />
                    
                   
                     <Route path="/admin/AdminSignin" element={<AdminSignin />} />
