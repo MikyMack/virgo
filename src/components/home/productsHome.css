@@ -2,6 +2,7 @@
 .product-card {
     overflow: hidden;
     transition: transform 0.6s ease-in-out;
+
 }
 
 .product-card:hover {
@@ -23,4 +24,12 @@
     padding: 3px 10px;
     border-radius: 5px;
     transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+.product-card div:hover{
+
+    transform: none!important;
+    translate: none!important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0)!important;
+    transform: translateY(0)!important;
+    background-color: white;
 }
