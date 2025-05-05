@@ -36,6 +36,7 @@ export default function MainRoutes() {
                     <Route path="/candleholders" element={<Candleholderspage />} />
                     <Route path="/productdetails/:id" element={<ProductDetailsVirgo />} />
                     <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/Orders" element={<Orders />} />
                    
                   
                     <Route path="/admin/AdminSignin" element={<AdminSignin />} />
