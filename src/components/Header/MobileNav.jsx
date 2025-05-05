@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import './header.css';
-// import { Link } from 'react-router-dom';
 import logo from '../../assets/logo/logo.webp';
 import Navlinks from './Navlinks';
 import { Link } from 'react-router-dom';
@@ -22,12 +21,21 @@ const MobileNav = ({ isMenuOpen, setIsMenuOpen }) => {
   };
 
   const menuRef = useRef(null);
+  const dropdownRef = useRef(null);
 
-  // Close menu on outside click
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
+
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
       }
     };
 
@@ -41,6 +49,12 @@ const MobileNav = ({ isMenuOpen, setIsMenuOpen }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen, setIsMenuOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
   return (
     <nav
@@ -59,6 +73,7 @@ const MobileNav = ({ isMenuOpen, setIsMenuOpen }) => {
           <Link to="/shop" className='flex justify-between items-center pl-3 py-2 hover:text-gray-600 font-bold md:font-normal text-2xl md:text-xl'>Store</Link>
           <Link to="/blogs" className='pl-3 hover:text-gray-600 font-bold text-2xl'>Articles</Link>
           <hr />
+     
         </ul>
 
         <ul className="space-y-4 text-lg font-semibold uppercase">

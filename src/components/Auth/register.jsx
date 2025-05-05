@@ -1,15 +1,15 @@
 import { useState, useRef } from 'react';
 import imag1 from "../../assets/breadcrumps/loginbread.jpg";
 import { FaGooglePlusSquare, FaFacebookSquare } from "react-icons/fa";
-import { verifyotp,sendOtp } from '../../actions/useractions/auth/registeraction';
+import { verifyotp, sendOtp } from '../../actions/useractions/auth/registeraction';
 import { useNavigate } from 'react-router-dom';
-import { GoogleAuthProvider, FacebookAuthProvider , signInWithPopup } from "firebase/auth";
-import { auth } from "../../firebase-config"; // Adjust the path to your Firebase configuration
-
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase-config";
+import axios from '../../axios';
 
 
 export default function Register() {
-  const navigate=useNavigate()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     otp: ''
@@ -83,18 +83,38 @@ export default function Register() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-  
+
       // Get user details
       const user = result.user;
-      console.log("Google Sign-In successful:", user);
-  
-      // Redirect or perform further actions
-      navigate("/");
+      const token = await user.getIdToken();
+
+      // Save token and user data to local storage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      }));
+      const response = await axios.post('/user', {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Google Sign-In failed:", error.message);
     }
   };
-  
+
 
   const handleFacebookSignIn = async () => {
     try {
@@ -155,11 +175,11 @@ export default function Register() {
           </form>
           <p className="mb-5">or Login with</p>
           <div className='flex flex-row justify-between'>
-            <button className="mb-5 px-5 py-2 w-1/2 bg-red-500 text-white flex items-center justify-center mr-2"  onClick={handleGoogleSignIn}>
+            <button className="mb-5 px-5 py-2 w-1/2 bg-red-500 text-white flex items-center justify-center mr-2" onClick={handleGoogleSignIn}>
               <FaGooglePlusSquare className="mr-2 text-4xl" /> Google
             </button>
             <button className="mb-5 px-5 py-2 w-1/2 bg-blue-600 text-white flex items-center justify-center ml-2">
-              <FaFacebookSquare className="mr-2 text-4xl"  onClick={handleFacebookSignIn} /> Facebook
+              <FaFacebookSquare className="mr-2 text-4xl" onClick={handleFacebookSignIn} /> Facebook
             </button>
           </div>
         </div>
