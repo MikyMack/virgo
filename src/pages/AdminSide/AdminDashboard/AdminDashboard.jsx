@@ -8,7 +8,6 @@ import { IoMdPrint } from "react-icons/io";
 import 'react-datepicker/dist/react-datepicker.css';
 import AdminHeader from '../../../components/AdminComp/Header/AdminHeader';
 import { MdOutlinePreview } from "react-icons/md";
-import bgim from "../../../assets/banner/dashboarbg.jpg"
 import logo from "../../../assets/logo/logo.webp"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
@@ -47,6 +46,7 @@ const recentOrders = [
 ];
 
 export default function AdminDashboard() {
+   
     const [menuOpen, setMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [startDate, setStartDate] = useState(new Date());
@@ -59,6 +59,8 @@ export default function AdminDashboard() {
     const toggleProfileMenu = () => {
         setProfileMenuOpen(!profileMenuOpen);
     };
+
+  
     
     const handlePreviewClick = (order) => {
         // Create a new window for previewing the invoice

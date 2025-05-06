@@ -1,25 +1,25 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import {
   FaUser,
   FaEdit,
   FaShoppingBag,
   FaHeart,
   FaAddressCard,
-  FaCreditCard,
   FaSignOutAlt,
   FaCamera,
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-import { MdSecurity, MdNotifications } from "react-icons/md";
 import profile from "../../assets/icons/profile.jpg";
 import Header from "../Header/Header";
 import s4 from '../../assets/products/s4.png'
-import { Navigate } from "react-router-dom";
 import Navigation from "../Header/Navigation";
+import { logout } from "../../actions/useractions/auth/registeraction";
+import {  useNavigate } from "react-router-dom";
 
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -185,6 +185,11 @@ const Profile = () => {
     setAddressModal(true);
   };
 
+  const handleLogout =()=>{
+    logout();
+    navigate('/');
+  }
+
   return (
     <>
       <Header />
@@ -288,7 +293,7 @@ const Profile = () => {
 
                 <hr className="my-4" />
 
-                <button className="flex items-center w-full p-3 text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                <button onClick={handleLogout} className="flex items-center w-full p-3 text-red-500 hover:bg-red-50 rounded-lg transition-all">
                   <FaSignOutAlt className="mr-3" />
                   <span>Sign Out</span>
                 </button>
