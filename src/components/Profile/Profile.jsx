@@ -15,7 +15,7 @@ import Header from "../Header/Header";
 import s4 from '../../assets/products/s4.png'
 import Navigation from "../Header/Navigation";
 import { logout } from "../../actions/useractions/auth/registeraction";
-import { Navigate, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 
 
 const Profile = () => {

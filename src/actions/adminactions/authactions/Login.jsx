@@ -23,3 +23,11 @@ export const adminVerifyOtp = async ({ email, otp }) => {
     throw new Error(message);
   }
 };
+
+// Admin logout function
+export const adminLogout = () => {
+  localStorage.removeItem('AdminToken');
+  return { message: 'Logged out successfully' };
+};
+
+
