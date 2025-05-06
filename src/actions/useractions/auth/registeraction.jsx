@@ -1,26 +1,33 @@
-import axios from "../../../axios";
-import { API_URLS } from "../../../constants/config";
+import api from '../../../utils/axios';
+// import { API_URLS } from "../../../constants/config";
 
-export const sendOtp=async(email)=>{
-    try {
-        console.log(email);  
-        const response=await axios.post(API_URLS.REGISTRATION,email);
-        return response.data;
-    } catch (error) {
-        console.error("while creating products",error);
-        throw error;
-    }
-}
-export const verifyotp=async(data)=>{
-    try {
-        console.log(data); 
-        const response=await axios.post(API_URLS.VERIFY_OTP,data);
-        const { access, refresh } = response.data;
-        localStorage.setItem('userAccessToken', access);
-        localStorage.setItem('userRefreshToken', refresh);
-        return response.data;
-    } catch (error) {
-        console.error("while creating products",error);
-        throw error;
-    }
-}
+// Send OTP
+export const sendOtp = async ({ email }) => {
+    const response = await api.post('/auth/login-or-register', { email });
+    return response.data;
+  };
+  
+  // Verify OTP
+  export const verifyotp = async ({ email, otp }) => {
+    const response = await api.post('/auth/verify-otp', { email, otp });
+    const { token, user, message } = response.data;
+  
+    // Save to localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+  
+    return { message };
+  };
+
+  export const loginWithGoogle = async (googleToken) => {
+    const { data } = await api.post('/auth/google-login', { token: googleToken });
+  
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
+  };
+
+  export const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
