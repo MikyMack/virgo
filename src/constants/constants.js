@@ -185,3 +185,4 @@ export const CandleHoldersData = [
         title: 'Candelabra'
     }
 ];
+
