@@ -1,192 +1,135 @@
 import { useState, useRef } from 'react';
-import imag1 from "../../assets/breadcrumps/loginbread.jpg";
-import { FaGooglePlusSquare, FaFacebookSquare } from "react-icons/fa";
-import { verifyotp, sendOtp } from '../../actions/useractions/auth/registeraction';
+import { sendOtp, verifyotp, loginWithGoogle } from '../../actions/useractions/auth/registeraction';
 import { useNavigate } from 'react-router-dom';
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../../firebase-config";
-import axios from '../../axios';
+import imag1 from "../../assets/breadcrumps/loginbread.jpg";
+import { GoogleLogin } from '@react-oauth/google';
+
 
 
 export default function Register() {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    email: '',
-    otp: ''
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', otp: '' });
   const [otpSent, setOtpSent] = useState(false);
-  const [Loading, setLoading] = useState(false);
-  const [Error, setError]= useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const otpInputRef = useRef(null);
-  //INPUT CHANGE HANDLER
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-// OTP SENDING LOGIC
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if( !formData.email.includes('@'))
-    {
-      setError('Please Enter a Valid Email Address.');
+    if (!formData.email.includes('@')) {
+      setError('Please enter a valid email.');
       return;
     }
-    setLoading(true);
-    setError('');
-    setSuccessMessage('');
     try {
-      await sendOtp({ email: formData.email });
-      setOtpSent(true);
-      setSuccessMessage('Otp has been sent to your email.');
-      setTimeout(()=> otpInputRef.current?.focus(), 300);
-    } catch (error) {
-      setError('Failed to send OTP. Please try again.');
-      console.error('Failed to send OTP:', error);
-    }
-    finally{
-      setLoading(false);
-    }
-  };
-// OTP VERIFICATION LOGIC
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();   
-    if (!/^\d{6}$/.test(formData.otp))
-      {
-        setError('Please enter a valid 6-digit OTP.');
-        return;
-      } 
       setLoading(true);
       setError('');
-      setSuccessMessage('');
-    try {
-      const response = await verifyotp(formData);
-     if(response.message==="Login successful") {
-      setSuccessMessage('OTP Verified successfully! Redirecting...');
-      setTimeout(()=>navigate("/"),2000);
-     }
-     else{
-      setError('Invalid OTP.Please try again.');
-     }
-    } catch (error) {
-      setError('OTP verification failed. please try again.');
-      console.error('OTP verification failed:', error);
-    }
-    finally {
+      const response = await sendOtp({ email: formData.email });
+      setSuccessMessage(response.message || 'OTP sent to email.');
+      setOtpSent(true);
+      setTimeout(() => otpInputRef.current?.focus(), 300);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to send OTP');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      // Get user details
-      const user = result.user;
-      const token = await user.getIdToken();
-
-      // Save token and user data to local storage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-      }));
-      const response = await axios.post('/user', {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Google Sign-In failed:", error.message);
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(formData.otp)) {
+      setError('Enter a valid 6-digit OTP');
+      return;
     }
-  };
-
-
-  const handleFacebookSignIn = async () => {
     try {
-      const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      // Get user details
-      const user = result.user;
-      console.log("Facebook Sign-In successful:", user);
-
-      // Redirect or perform further actions
-      navigate("/");
-    } catch (error) {
-      console.error("Facebook Sign-In failed:", error.message);
+      setLoading(true);
+      setError('');
+      const response = await verifyotp(formData);
+      setSuccessMessage('Logged in successfully!');
+      setTimeout(() => navigate('/'), 1500);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <section className='font-abc'>
       <div className="relative h-1/2 font-abc">
-        <img className="w-full h-[300px] md:h-[300px] lg:h-[300px] object-cover" src={imag1} alt="breadcrump" />
+        <img className="w-full h-[300px] object-cover" src={imag1} alt="breadcrump" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-          <h1 className="text-[30px] lg:text-[60px] md:text-[50px] pb-2">My Account</h1>
-          <p className="text-xl">HOME<span> / MY ACCOUNT</span></p>
+          <h1 className="text-[30px] lg:text-[60px]">My Account</h1>
+          <p className="text-xl">HOME / MY ACCOUNT</p>
         </div>
       </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center xl:container mt-8">
-        <div className="flex flex-col items-center justify-start w-full lg:w-1/2 p-10 lg:p-28 md:p-28">
+
+      <div className="flex flex-col lg:flex-row items-center justify-center mt-8">
+        <div className="w-full lg:w-1/2 p-10">
           <h1 className="text-3xl mb-5 text-center">LOGIN</h1>
-          <p className="my-6 text-gray-700">Login here by filling your email to get OTP or use your favorite social network account to enter the site. Site login will simplify the purchase process and allows you to manage your personal account.</p>
-          <form className="flex flex-col items-center w-full" onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
+          <p className="text-gray-700 mb-6">
+            Enter your email to receive an OTP, or use your social account (if available).
+          </p>
+
+          <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
             <input
-              className="mb-5 p-2 w-full border-b focus:outline-none"
+              className="w-full border-b p-2 focus:outline-none"
               type="email"
               name="email"
               placeholder="Email"
-              minLength="1"
               value={formData.email}
               onChange={handleChange}
               required
             />
+
             {otpSent && (
               <input
-                className="mb-5 p-2 w-full border-b focus:outline-none"
+                ref={otpInputRef}
+                className="w-full border-b p-2 focus:outline-none"
                 type="text"
                 name="otp"
-                placeholder="OTP"
-                maxLength="6"
-                minLength="1"
+                placeholder="Enter OTP"
                 value={formData.otp}
                 onChange={handleChange}
                 required
               />
             )}
-            <button className="mb-5 p-4 text-2xl w-full bg-[#acc7bf] hover:bg-[#8dafa5] text-white ">
-              {otpSent ? 'VERIFY OTP' : 'SEND OTP'}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#acc7bf] text-white py-3 hover:bg-[#8dafa5]"
+            >
+              {loading ? 'Processing...' : otpSent ? 'Verify OTP' : 'Send OTP'}
             </button>
           </form>
-          <p className="mb-5">or Login with</p>
-          <div className='flex flex-row justify-between'>
-            <button className="mb-5 px-5 py-2 w-1/2 bg-red-500 text-white flex items-center justify-center mr-2" onClick={handleGoogleSignIn}>
-              <FaGooglePlusSquare className="mr-2 text-4xl" /> Google
-            </button>
-            <button className="mb-5 px-5 py-2 w-1/2 bg-blue-600 text-white flex items-center justify-center ml-2">
-              <FaFacebookSquare className="mr-2 text-4xl" onClick={handleFacebookSignIn} /> Facebook
-            </button>
-          </div>
+
+          {error && <p className="text-red-500 mt-3">{error}</p>}
+          {successMessage && <p className="text-green-500 mt-3">{successMessage}</p>}
         </div>
       </div>
-      <div className='lg:container'>
-        <hr />
+      <div className="mt-6 flex justify-center">
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            try {
+              await loginWithGoogle(credentialResponse.credential);
+              setSuccessMessage("Logged in successfully!");
+              setTimeout(() => navigate("/"), 1500);
+            } catch (err) {
+              console.error(err);
+              setError("Google login failed. Try again.");
+            }
+          }}
+          onError={() => {
+            setError("Google login failed. Please try again.");
+          }}
+        />
       </div>
+
     </section>
   );
 }

@@ -1,9 +1,17 @@
 import PropTypes from 'prop-types';
 import { FaChartPie, FaBoxOpen, FaTags, FaClipboardList, FaTachometerAlt, FaUsers, FaThList, FaCog, FaSignOutAlt, FaTimes } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../../assets/logo/logo.webp';
+import { adminLogout } from '../../../actions/adminactions/authactions/Login';
 
 export default function AdminSidebar({ menuOpen, setMenuOpen }) {
+    const navigate= useNavigate();
+
+    const handleLogout =()=>{
+        adminLogout();
+        navigate('/admin/AdminSignin/');
+      }
+
     return (
         <div className={`fixed top-0 left-0 h-full w-64 bg-gradient-to-b from-indigo-300 to-purple-300 text-white shadow-xl transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out z-50`}>
             
@@ -67,10 +75,13 @@ export default function AdminSidebar({ menuOpen, setMenuOpen }) {
                         </Link>
                     </li>
                     <li>
-                        <Link to="/logout" className="flex items-center space-x-3 p-3 rounded-lg bg-indigo-700 bg-opacity-30 transition hover:bg-indigo-800">
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center space-x-3 p-3 rounded-lg bg-indigo-700 bg-opacity-30 transition hover:bg-indigo-800 w-full text-left"
+                        >
                             <FaSignOutAlt className="text-red-500" />
                             <span>Logout</span>
-                        </Link>
+                        </button>
                     </li>
                 </ul>
             </nav>
