@@ -11,6 +11,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { products } from "../../constants/constants.js"
 import { FaHeart } from "react-icons/fa";
 import StarRating from '../Custom bottons/starRating.jsx';
+import { transform } from 'framer-motion';
 
 const ProductsHome = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -125,20 +126,20 @@ const ProductsHome = () => {
                                         </span>
                                     </button>
                                 </div>
-                                <div className="relative p-2 sm:p-4 flex flex-col justify-between">
-                                    <div>
+                                <div  className="transform-none transition-none hover:translate-y-0 relative p-2 sm:p-4 flex flex-col justify-between">
+                                    <div className='prdct-details'  >
                                         <p className="text-gray-500 text-sm sm:text-base">{product.category}</p>
                                         <h6 className="text-base sm:text-lg font-medium">
                                             <Link to="product1_simple.html">{product.title}</Link>
                                         </h6>
-                                        <div className="flex items-center justify-between text-lg sm:text-xl font-medium">
-                                            <div className='flex items-center'>
+                                        <div className="flex items-center prdct-details justify-between text-lg sm:text-xl font-medium">
+                                            <div className='flex items-center prdct-details'>
                                                 <span>
                                                     <LiaRupeeSignSolid />
                                                         </span>
                                                 {product.price}
                                             </div>
-                                           <div className="flex space-x-2 items-center">
+                                           <div className="flex space-x-2 items-center prdct-details">
                                                 {product.images.map((image, index) => (
                                                     <img
                                                         key={index}
@@ -154,7 +155,7 @@ const ProductsHome = () => {
                                         </div>
                                     </div>
                                       </div>
-                                    <div className="flex items-center justify-between mt-1 px-2">
+                                    <div className="flex items-center justify-between prdct-details mt-1 px-2">
                                         <button
                                             title="Add To Wishlist"
                                             className="bg-transparent border-0"
@@ -162,7 +163,7 @@ const ProductsHome = () => {
                                         >
                                             <FaHeart className='text-xl text-red-400 hover:text-red-700' />
                                         </button>
-                                        <div>
+                                        <div className='prdct-details'>
                                             <StarRating rating={4} />
                                         </div>
                                     </div>

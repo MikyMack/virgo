@@ -1,0 +1,7 @@
+.ft-sec div:hover{
+    transform: none!important;
+    translate: none!important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0)!important;
+    transform: translateY(0)!important;
+
+}

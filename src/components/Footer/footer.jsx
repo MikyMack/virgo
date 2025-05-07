@@ -19,7 +19,7 @@ import logo from "../../assets/logo/logo.webp"
 import { FaRegCopyright } from "react-icons/fa";
 import payment from "../../assets/payments.png"
 // import './footer.css';
-
+import './footer.css'
 const data = [
     { id: 1, image: img1, caption: "Our first story", likes: 120, comments: 30 },
     { id: 2, image: img2, caption: "Our second story", likes: 150, comments: 45 },
@@ -86,9 +86,9 @@ export default function Footer() {
             </div>
 
             <div className=" bg-gray-100 py-12 font-abc">
-                <div className="xl:container mx-auto px-4 lg:px-0">
+                <div className="xl:container ft-sec mx-auto px-4 lg:px-0">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 text-center gap-8">
-                        <div>
+                        <div  className="ft-sec">
                             <h3 className="font-semibold">My Account</h3>
                             <ul className="text-gray-700 py-2">
                                 <li className="cursor-pointer hover:text-gray-800 p-1">Sign in / Sign Up</li>

@@ -5,6 +5,7 @@ import { LiaRupeeSignSolid } from "react-icons/lia";
 import { Link } from 'react-router-dom';
 import { FaOpencart, FaHeart } from "react-icons/fa";
 import StarRating from '../Custom bottons/starRating.jsx';
+import wishlistimg from '../../assets/icons/wishlistimg.png'
 
 export default function WishlistComp() {
     const [wishlist, setWishlist] = useState([]);
@@ -139,7 +140,20 @@ export default function WishlistComp() {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-lg text-gray-700">You currently have no items in your wishlist.</p>
+                    
+                       <div className='flex justify-center items-center flex-col'>
+                         
+                          <img className='h-[300px] mt-2' src={wishlistimg} alt="" />
+                          <p className="text-lg text-gray-700">You currently have no items in your wishlist.</p>
+                                <Link to={'/shop'}>  <button className=" bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white px-6 py-2 rounded-md hover:opacity-90 mt-8">
+                                          Continue Shopping
+                                      </button></Link>
+
+                       </div>
+                      
+
+                 
+                    
                 )}
             </div>
         </section>
