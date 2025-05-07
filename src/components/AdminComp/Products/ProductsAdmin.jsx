@@ -3,9 +3,6 @@ import AdminHeader from "../Header/AdminHeader";
 import { FaBars, FaCog, FaRegEdit, FaSignOutAlt, FaTimes, FaUserCircle } from 'react-icons/fa';
 import { MdDeleteForever } from "react-icons/md";
 import { Link } from 'react-router-dom';
-import bgim from "../../../assets/banner/dashboarbg.jpg";
-import { CreateProduct, ShowAllProducts, ShowVariantTypes, ShowVariantOptions } from '../../../actions/adminactions/products/productsaction';
-import { CategoriesList } from '../../../actions/adminactions/categories/categoriesactions';
 
 export default function ProductsAdmin() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -89,49 +86,49 @@ export default function ProductsAdmin() {
     const [mainCategory, setMainCategory] = useState('');
     const [childrenCategory, setChildrenCategory] = useState('');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const productsData = await ShowAllProducts();
-                setProducts(productsData || {});
-                const variantTypesData = await ShowVariantTypes();
-                setVariantTypes(variantTypesData || []);
-                const variantOptionsData = await ShowVariantOptions();
-                setVariantOptions(variantOptionsData || []);
-                const categoriesData = await CategoriesList();
-                setCategories(categoriesData || []);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-        fetchData();
-    }, []);
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //         try {
+    //             const productsData = await ShowAllProducts();
+    //             setProducts(productsData || {});
+    //             const variantTypesData = await ShowVariantTypes();
+    //             setVariantTypes(variantTypesData || []);
+    //             const variantOptionsData = await ShowVariantOptions();
+    //             setVariantOptions(variantOptionsData || []);
+    //             const categoriesData = await CategoriesList();
+    //             setCategories(categoriesData || []);
+    //         } catch (error) {
+    //             console.error('Error fetching data:', error);
+    //         }
+    //     };
+    //     fetchData();
+    // }, []);
 
-    const handleSubmitProduct = async () => {
-        try {
-            const response = await CreateProduct(productInfo);
-            console.log('Product created successfully:', response);
-            setShowAddProductPopup(false);
-            setCustomCategoryName('');
-            setMainCategory('');
-            setChildrenCategory('');
-            const updatedProducts = await ShowAllProducts();
-            setProducts(updatedProducts || {});
-        } catch (error) {
-            console.error('Error creating product:', error);
-        }
-    };
+    // const handleSubmitProduct = async () => {
+    //     try {
+    //         const response = await CreateProduct(productInfo);
+    //         console.log('Product created successfully:', response);
+    //         setShowAddProductPopup(false);
+    //         setCustomCategoryName('');
+    //         setMainCategory('');
+    //         setChildrenCategory('');
+    //         const updatedProducts = await ShowAllProducts();
+    //         setProducts(updatedProducts || {});
+    //     } catch (error) {
+    //         console.error('Error creating product:', error);
+    //     }
+    // };
 
-    const handleEditProductSubmit = async () => {
-        try {
-            console.log('Updating product:', editProductInfo);
-            setShowEditProductPopup(false);
-            const updatedProducts = await ShowAllProducts();
-            setProducts(updatedProducts || {});
-        } catch (error) {
-            console.error('Error updating product:', error);
-        }
-    };
+    // const handleEditProductSubmit = async () => {
+    //     try {
+    //         console.log('Updating product:', editProductInfo);
+    //         setShowEditProductPopup(false);
+    //         const updatedProducts = await ShowAllProducts();
+    //         setProducts(updatedProducts || {});
+    //     } catch (error) {
+    //         console.error('Error updating product:', error);
+    //     }
+    // };
 
     const toggleProfileMenu = () => setProfileMenuOpen(!profileMenuOpen);
     const toggleMenu = () => setMenuOpen(!menuOpen);

@@ -211,15 +211,7 @@ const Navlinks = () => {
                                                 </div>
                                             )}
 
-                                            <div className="mt-4 pt-2 border-t border-gray-200 text-center text-sm text-gray-600">
-                                                <Link
-                                                    to={`/category/${link.name.toLowerCase()}`}
-                                                    className="hover:text-gray-800"
-                                                    onClick={handleViewAllClick}
-                                                >
-                                                    View All
-                                                </Link>
-                                            </div>
+                                            
                                         </div>
                                     )}
                                 </div>

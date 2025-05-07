@@ -10,8 +10,10 @@ import { Link } from 'react-router-dom';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import profile from "../../assets/icons/profile.jpg";
 
 export default function Header() {
+  const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -24,6 +26,9 @@ export default function Header() {
   const headerRef = useRef(null);
 
   useEffect(() => {
+
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    setUser(loggedInUser);
     const updateCounts = () => {
       try {
         const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
@@ -47,7 +52,7 @@ export default function Header() {
 
     window.addEventListener('storage', handleStorageChange);
     const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
+    localStorage.setItem = function (key, value) {
       originalSetItem.apply(this, arguments);
       if (['cart', 'wishlist', 'recentSearches'].includes(key)) {
         updateCounts();
@@ -59,6 +64,8 @@ export default function Header() {
       localStorage.setItem = originalSetItem;
     };
   }, []);
+
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -136,9 +143,9 @@ export default function Header() {
             <Link to="/" className="flex items-center">
               <img src={logo} alt="Brand Logo" className="h-16 w-auto" />
             </Link>
-            
+
             <div className="hidden lg:block relative">
-              <div 
+              <div
                 className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
                 onClick={() => setShowSearch(true)}
               >
@@ -149,60 +156,74 @@ export default function Header() {
 
           {/* Center Logo Text */}
           <div className="flex-1 flex justify-center items-center">
-    <span className="text-4xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 bg-clip-text text-transparent tracking-tighter"
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          letterSpacing: '-0.03em',
-          fontWeight: 900,
-          color: '#1px 1px 2px rgba(0,0,0,0.1)', // Darker text color for contrast
-        }}>
-    VIRGO
-  </span>
-</div>
+            <span className="text-4xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-gray-800 bg-clip-text text-transparent tracking-tighter"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                letterSpacing: '-0.03em',
+                fontWeight: 900,
+                color: '#1px 1px 2px rgba(0,0,0,0.1)', // Darker text color for contrast
+              }}>
+              VIRGO
+            </span>
+          </div>
 
 
           {/* Mobile Menu */}
           {/* Mobile Menu */}
-<div className="flex items-center lg:hidden space-x-4"> {/* Added space-x-4 */}
-  {/* Mobile Search Button */}
-  <div 
-    className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
-    onClick={() => setShowSearch(true)}
-  >
-    <CiSearch className="w-5 h-5 text-gray-700" />
-  </div>
-  
-  <FiMenu
-    className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer"
-    onClick={() => setIsMenuOpen(!isMenuOpen)}
-  />
-</div>
+          <div className="flex items-center lg:hidden space-x-4"> {/* Added space-x-4 */}
+            {/* Mobile Search Button */}
+            <div
+              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
+              onClick={() => setShowSearch(true)}
+            >
+              <CiSearch className="w-5 h-5 text-gray-700" />
+            </div>
+
+            <FiMenu
+              className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            />
+          </div>
 
           {/* Account and Cart */}
           <div className="flex space-x-6 items-center font-semibold">
-            <div className="hidden lg:flex space-x-6 items-center">
-              <Link to="/register">
-                <div className="flex space-x-2">
-                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                    LOGIN
-                  </p>
-                  <span className="text-gray-400">/</span>
-                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-                    REGISTER
-                  </p>
-                </div>
-              </Link>
-              <Link to="/wishlist">
-                <div className="relative">
-                  <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            </div>
+          <div className="hidden lg:flex space-x-6 items-center">
+      {!user ? (
+        <Link to="/register">
+          <div className="flex space-x-2">
+            <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+              LOGIN
+            </p>
+            <span className="text-gray-400">/</span>
+            <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+              REGISTER
+            </p>
+          </div>
+        </Link>
+      ) : (
+        <Link to="/profile" className="flex items-center gap-2">   
+          <img 
+            src={user.avatar || profile} 
+            alt="Profile" 
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+            PROFILE
+          </p>
+        </Link>
+      )}
+
+      <Link to="/wishlist">
+        <div className="relative">
+          <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
+          {wishlistCount > 0 && (
+            <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
+              {wishlistCount}
+            </span>
+          )}
+        </div>
+      </Link>
+    </div>
             <Link to='/cart'>
               <div className="relative">
                 <HiOutlineShoppingCart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
@@ -225,7 +246,7 @@ export default function Header() {
 
       {/* Enhanced Search Overlay - Scrollbar removed */}
       {showSearch && (
-        <div 
+        <div
           className="fixed inset-0 bg-white bg-opacity-95 z-50 pt-32 px-4 overflow-hidden"
           ref={searchRef}
         >
@@ -243,7 +264,7 @@ export default function Header() {
                 ref={inputRef}
                 autoComplete="off"
               />
-              <button 
+              <button
                 onClick={() => setShowSearch(false)}
                 className="absolute right-0 top-1 text-gray-500 hover:text-black transition-colors"
               >
@@ -258,7 +279,7 @@ export default function Header() {
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-medium uppercase tracking-wider">Recent Searches</h3>
-                    <button 
+                    <button
                       onClick={clearRecentSearches}
                       className="text-xs text-gray-500 hover:text-black"
                     >
@@ -281,7 +302,7 @@ export default function Header() {
 
               {/* Categories */}
               <div className="mb-8">
-                <h3 
+                <h3
                   className="text-sm font-medium uppercase tracking-wider mb-4 cursor-pointer flex items-center"
                   onClick={() => setShowCategories(!showCategories)}
                 >
@@ -310,7 +331,7 @@ export default function Header() {
                   <div className="text-xs text-gray-500 uppercase tracking-wider mb-4">
                     Results for "{searchTerm}"
                   </div>
-                  
+
                   <div className="space-y-4">
                     {[
                       { id: 1, name: 'Vanilla Dream Candle', category: 'Signature Candles' },
@@ -318,25 +339,25 @@ export default function Header() {
                       { id: 3, name: 'Sandalwood Diffuser', category: 'Reed Diffusers' },
                       { id: 4, name: 'Lavender Room Spray', category: 'Home Fragrance' }
                     ]
-                    .filter(item => 
-                      item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                      item.category.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map(item => (
-                      <Link 
-                        key={item.id}
-                        to={`/product/${item.id}`}
-                        className="block py-2 hover:bg-gray-50 -mx-2 px-2 transition-colors"
-                        onClick={() => setShowSearch(false)}
-                      >
-                        <div className="font-medium">{item.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">{item.category}</div>
-                      </Link>
-                    ))}
+                      .filter(item =>
+                        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        item.category.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map(item => (
+                        <Link
+                          key={item.id}
+                          to={`/product/${item.id}`}
+                          className="block py-2 hover:bg-gray-50 -mx-2 px-2 transition-colors"
+                          onClick={() => setShowSearch(false)}
+                        >
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-xs text-gray-500 mt-1">{item.category}</div>
+                        </Link>
+                      ))}
                   </div>
 
-                  <Link 
-                    to="/shop"  
+                  <Link
+                    to="/shop"
                     className="inline-block mt-6 text-sm font-medium uppercase tracking-wider border-b border-black pb-1 hover:text-black transition-colors"
                     onClick={() => setShowSearch(false)}
                   >
