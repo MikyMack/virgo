@@ -16,6 +16,7 @@ export const adminLogin = async ({ email }) => {
 export const adminVerifyOtp = async ({ email, otp }) => {
   try {
     const response = await api.post('/auth/admin/verify-otp', { email, otp });
+    
     return response.data;
   } catch (error) {
     const message =

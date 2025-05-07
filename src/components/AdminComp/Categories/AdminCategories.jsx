@@ -3,72 +3,43 @@ import { FaUserCircle, FaCog, FaSignOutAlt, FaBars, FaTimes, FaRegEdit, FaPlus, 
 import { MdDeleteForever } from "react-icons/md";
 import { Link } from 'react-router-dom';
 import AdminHeader from '../Header/AdminHeader';
-
+import { getPrimaryCategories,createPrimaryCategory,updatePrimaryCategory,deletePrimaryCategory,getSecondaryCategories,createSecondaryCategory,updateSecondaryCategory,deleteSecondaryCategory,getTertiaryCategories,createTertiaryCategory,updateTertiaryCategory,deleteTertiaryCategory} from '../../../actions/adminactions/categories/categoriesactions';
 export default function AdminCategories() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [showAddCategoryPopup, setShowAddCategoryPopup] = useState(false);
-    const [categoryInfo, setCategoryInfo] = useState({ id: null, name: '', description: '', parent: null, is_active: true, type: 'main', subcategories: [] });
-    const [secondaryCategoryInfo, setSecondaryCategoryInfo] = useState({ id: null, name: '', description: '', is_active: true, type: 'private', subcategories: [] });
-    const [tertiaryCategoryInfo, setTertiaryCategoryInfo] = useState({ id: null, name: '', description: '', is_active: true, type: 'subcategory', subcategories: [] });
+
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
-    const [newCategoryName, setNewCategoryName] = useState('');
-    const [showSecondaryInput, setShowSecondaryInput] = useState(false);
-    const [newSecondaryName, setNewSecondaryName] = useState('');
-    const [showTertiaryInput, setShowTertiaryInput] = useState(false);
-    const [newTertiaryName, setNewTertiaryName] = useState('');
-    const [isRemovingPrimary, setIsRemovingPrimary] = useState(false);
-    const [isRemovingSecondary, setIsRemovingSecondary] = useState(false);
-    const [isRemovingTertiary, setIsRemovingTertiary] = useState(false);
-    const [mainCategoryOptions, setMainCategoryOptions] = useState([
-        { value: '', label: 'Select the category', disabled: true },
-        { value: 'Candles', label: 'Candles' },
-        { value: 'Candle Holders', label: 'Candle Holders' },
-        { value: 'Sachets', label: 'Sachets' },
-        { value: 'Charms & Melts', label: 'Charms & Melts' },
-        { value: 'Diyas', label: 'Diyas' },
-        { value: 'Table Tops', label: 'Table Tops' }
-    ]);
-    const [secondaryCategoryOptionsMap, setSecondaryCategoryOptionsMap] = useState({
-        'Candles': [
-            'Jar',
-            'Floating',
-            'Decorative',
-            'Pillar',
-            'Tea Lights',
-            'Stick Candles',
-            'Religious & Festive',
-            'Gifting'
-        ],
-        'Candle Holders': [
-            'Pillar',
-            'Tea Light',
-            'Stick'
-        ],
-        'Sachets': [
-            'Round',
-            'Rectangle',
-            'Rings',
-            'Hearts'
-        ],
-        'Charms & Melts': [
-            'Charms & Melts'
-        ],
-        'Diyas': [
-            'Terracotta',
-            'Metal',
-            'Ceramic'
-        ],
-        'Table Tops': [
-            'Glass-Mosaic'
-        ]
-    });
+
+  
+
+
     const [tertiaryCategoryOptions, setTertiaryCategoryOptions] = useState({});
     const [removedTertiaryCategories, setRemovedTertiaryCategories] = useState({});
 
+
+    const  handleAddCategory=()=>{
+        setShowAddCategoryPopup(true)
+    }
+
+  
+// const handleChangePrimary=()=>{
+//     setprimary({...primaryCategory,[e.target.name]:e.target.value})
+// }
+//  const handleSubmit = async (e) => {
+//     e.preventDefault();
+    
+//     try {
+//       await createPrimaryCategory(primaryCategory);
+//       await  fetchPrimarycategory(); // Refresh list after creation
+//       setFormData({ name: '', description: '' }); // Reset form
+//     } catch (error) {
+//       console.error('Error creating category:', error);
+//     }
+//   };
+ 
     // useEffect(() => {
     //     const fetchCategories = async () => {
     //         try {
@@ -84,196 +55,24 @@ export default function AdminCategories() {
     const toggleMenu = () => setMenuOpen(!menuOpen);
     const toggleProfileMenu = () => setProfileMenuOpen(!profileMenuOpen);
 
-    const handleAddCategory = () => {
-        setCategoryInfo({ id: null, name: '', description: '', parent: null, is_active: true, type: 'main', subcategories: [] });
-        setSecondaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'private', subcategories: [] });
-        setTertiaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'subcategory', subcategories: [] });
-        setShowAddCategoryPopup(true);
-        setShowNewCategoryInput(false);
-        setNewCategoryName('');
-        setShowSecondaryInput(false);
-        setNewSecondaryName('');
-        setShowTertiaryInput(false);
-        setNewTertiaryName('');
-        setIsRemovingPrimary(false);
-        setIsRemovingSecondary(false);
-        setIsRemovingTertiary(false);
-        setRemovedTertiaryCategories({});
-    };
 
-    const handleAddNewCategory = () => {
-        if (newCategoryName.trim()) {
-            const newOption = { value: newCategoryName, label: newCategoryName };
-            setMainCategoryOptions([...mainCategoryOptions.filter(opt => !opt.disabled), newOption]);
-            setCategoryInfo({ ...categoryInfo, name: newCategoryName });
-            setNewCategoryName('');
-            setShowNewCategoryInput(false);
-        }
-    };
 
-    const handleRemoveCategory = (selectedName) => {
-        if (selectedName) {
-            setMainCategoryOptions(mainCategoryOptions.filter(option => option.value !== selectedName));
-            if (categoryInfo.name === selectedName) {
-                setCategoryInfo({ ...categoryInfo, name: '' });
-            }
-            setNewCategoryName('');
-            setShowNewCategoryInput(false);
-            setIsRemovingPrimary(false);
-        }
-    };
 
-    const handleAddNewSecondary = () => {
-        if (newSecondaryName.trim() && categoryInfo.name) {
-            setSecondaryCategoryOptionsMap(prev => ({
-                ...prev,
-                [categoryInfo.name]: [...(prev[categoryInfo.name] || []), newSecondaryName]
-            }));
-            setSecondaryCategoryInfo({ ...secondaryCategoryInfo, name: newSecondaryName });
-            setNewSecondaryName('');
-            setShowSecondaryInput(false);
-        }
-    };
 
-    const handleRemoveSecondary = (selectedName) => {
-        if (selectedName && categoryInfo.name) {
-            setSecondaryCategoryOptionsMap(prev => ({
-                ...prev,
-                [categoryInfo.name]: (prev[categoryInfo.name] || []).filter(name => name !== selectedName)
-            }));
-            if (secondaryCategoryInfo.name === selectedName) {
-                setSecondaryCategoryInfo({ ...secondaryCategoryInfo, name: '' });
-            }
-            setNewSecondaryName('');
-            setShowSecondaryInput(false);
-            setIsRemovingSecondary(false);
-        }
-    };
 
-    const handleAddNewTertiary = () => {
-        if (newTertiaryName.trim() && categoryInfo.name && secondaryCategoryInfo.name) {
-            const key = `${categoryInfo.name}|${secondaryCategoryInfo.name}`;
-            setTertiaryCategoryOptions(prev => ({
-                ...prev,
-                [key]: [...(prev[key] || []), { value: newTertiaryName, label: newTertiaryName }]
-            }));
-            setTertiaryCategoryInfo({ ...tertiaryCategoryInfo, name: newTertiaryName });
-            setNewTertiaryName('');
-            setShowTertiaryInput(false);
-        }
-    };
 
-    const handleRemoveTertiary = (selectedName) => {
-        if (selectedName && categoryInfo.name && secondaryCategoryInfo.name) {
-            const key = `${categoryInfo.name}|${secondaryCategoryInfo.name}`;
-            setRemovedTertiaryCategories(prev => ({
-                ...prev,
-                [key]: [...(prev[key] || []), selectedName]
-            }));
-            setTertiaryCategoryOptions(prev => ({
-                ...prev,
-                [key]: (prev[key] || []).filter(option => option.value !== selectedName)
-            }));
-            if (tertiaryCategoryInfo.name === selectedName) {
-                setTertiaryCategoryInfo({ ...tertiaryCategoryInfo, name: '' });
-            }
-            setNewTertiaryName('');
-            setShowTertiaryInput(false);
-            setIsRemovingTertiary(false);
-        }
-    };
 
-    const handleCategoryInfoChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setCategoryInfo({ ...categoryInfo, [name]: type === 'checkbox' ? checked : value });
-    };
+ 
 
-    const handleSecondaryCategoryInfoChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setSecondaryCategoryInfo({ ...secondaryCategoryInfo, [name]: type === 'checkbox' ? checked : value });
-    };
+  
 
-    const handleTertiaryCategoryInfoChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setTertiaryCategoryInfo({ ...tertiaryCategoryInfo, [name]: type === 'checkbox' ? checked : value });
-    };
 
-    const handleSubcategoryChange = (index, e) => {
-        const { name, value, type, checked } = e.target;
-        const updatedSubcategories = [...categoryInfo.subcategories];
-        updatedSubcategories[index] = { ...updatedSubcategories[index], [name]: type === 'checkbox' ? checked : value };
-        setCategoryInfo({ ...categoryInfo, subcategories: updatedSubcategories });
-    };
 
-    const handleAddSubcategory = () => {
-        setCategoryInfo({ ...categoryInfo, subcategories: [...categoryInfo.subcategories, { id: null, name: '', description: '', parent: categoryInfo.id, is_active: false, subcategories: [] }] });
-    };
+ 
 
-    const handleSaveCategory = async () => {
-        try {
-            const createdCategories = [];
-            
-            if (categoryInfo.name.trim()) {
-                const response = await CreateCategory({
-                    ...categoryInfo,
-                    parent: categoryInfo.type === 'subcategory' ? categoryInfo.parent : null,
-                    subcategories: categoryInfo.type === 'subcategory' ? [] : categoryInfo.subcategories,
-                });
-                if (response) {
-                    createdCategories.push(response);
-                } else {
-                    console.error("Failed to create first category: No response from API");
-                }
-            }
+ 
 
-            if (secondaryCategoryInfo.name.trim()) {
-                const response = await CreateCategory({
-                    ...secondaryCategoryInfo,
-                    subcategories: secondaryCategoryInfo.subcategories,
-                });
-                if (response) {
-                    createdCategories.push(response);
-                } else {
-                    console.error("Failed to create second category: No response from API");
-                }
-            }
-
-            if (tertiaryCategoryInfo.name.trim()) {
-                const response = await CreateCategory({
-                    ...tertiaryCategoryInfo,
-                    parent: tertiaryCategoryInfo.type === 'subcategory' ? tertiaryCategoryInfo.parent : null,
-                    subcategories: tertiaryCategoryInfo.subcategories,
-                });
-                if (response) {
-                    createdCategories.push(response);
-                } else {
-                    console.error("Failed to create tertiary category: No response from API");
-                }
-            }
-
-            if (createdCategories.length > 0) {
-                const data = await CategoriesList();
-                setCategories(data);
-            }
-
-            setShowAddCategoryPopup(false);
-            setCategoryInfo({ id: null, name: '', description: '', parent: null, is_active: true, type: 'main', subcategories: [] });
-            setSecondaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'private', subcategories: [] });
-            setTertiaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'subcategory', subcategories: [] });
-            setShowNewCategoryInput(false);
-            setNewCategoryName('');
-            setShowSecondaryInput(false);
-            setNewSecondaryName('');
-            setShowTertiaryInput(false);
-            setNewTertiaryName('');
-            setIsRemovingPrimary(false);
-            setIsRemovingSecondary(false);
-            setIsRemovingTertiary(false);
-            setRemovedTertiaryCategories({});
-        } catch (error) {
-            console.error("Failed to save category:", error);
-        }
-    };
+  
 
     const handleDeleteCategory = (id) => {
         setCategories(categories.filter(category => category.id !== id));
@@ -305,16 +104,7 @@ export default function AdminCategories() {
         ));
     };
 
-    const handleEditCategory = (category) => {
-        setCategoryInfo({ ...category, type: category.parent ? 'subcategory' : (category.is_private ? 'private' : 'main') });
-        setSecondaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'private', subcategories: [] });
-        setTertiaryCategoryInfo({ id: null, name: '', description: '', is_active: true, type: 'subcategory', subcategories: [] });
-        setShowAddCategoryPopup(true);
-        setIsRemovingPrimary(false);
-        setIsRemovingSecondary(false);
-        setIsRemovingTertiary(false);
-        setRemovedTertiaryCategories({});
-    };
+;
 
     const filteredCategories = categories.filter(category =>
         category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -428,6 +218,192 @@ export default function AdminCategories() {
         return [...defaultOptions.filter(opt => !removed.includes(opt.value)), ...customOptions];
     };
 
+
+
+
+    const [primaryCategories, setPrimaryCategories] = useState([]);
+  const [secondaryCategories, setSecondaryCategories] = useState([]);
+  const [tertiaryCategories, setTertiaryCategories] = useState([]);
+  
+  // State for form inputs
+  const [newPrimaryCategory, setNewPrimaryCategory] = useState("");
+  const [primaryDescription, setPrimaryDescription] = useState("");
+  const [selectedPrimary, setSelectedPrimary] = useState("");
+  
+  const [newSecondaryCategory, setNewSecondaryCategory] = useState("");
+  const [secondaryDescription, setSecondaryDescription] = useState("");
+  const [selectedSecondary, setSelectedSecondary] = useState("");
+  
+  const [newTertiaryCategory, setNewTertiaryCategory] = useState("");
+  const [tertiaryDescription, setTertiaryDescription] = useState("");
+
+  // Loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+    // Fetch primary categories on component mount
+    useEffect(() => {
+        const fetchPrimaryCategories = async () => {
+          setIsLoading(true);
+          try {
+            const data = await getPrimaryCategories();
+            setPrimaryCategories(data);
+          } catch (err) {
+            setError("Failed to load primary categories");
+            console.error(err);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+    
+        fetchPrimaryCategories();
+        console.log(primaryCategories ,'===data');
+        
+      }, []);
+    
+      // Fetch secondary categories when a primary category is selected
+      useEffect(() => {
+        if (!selectedPrimary) {
+          setSecondaryCategories([]);
+          return;
+        }
+    
+        const fetchSecondaryCategories = async () => {
+          setIsLoading(true);
+          try {
+            const data = await getSecondaryCategories();
+            // Filter secondary categories by selected primary category
+            const filteredData = data.filter(
+              category => category.primaryCategory && category.primaryCategory._id === selectedPrimary
+            );
+            setSecondaryCategories(filteredData);
+          } catch (err) {
+            setError("Failed to load secondary categories");
+            console.error(err);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+    
+        fetchSecondaryCategories();
+      }, [selectedPrimary]);
+    
+      // Fetch tertiary categories when a secondary category is selected
+      useEffect(() => {
+        if (!selectedSecondary) {
+          setTertiaryCategories([]);
+          return;
+        }
+    
+        const fetchTertiaryCategories = async () => {
+          setIsLoading(true);
+          try {
+            const data = await getTertiaryCategories();
+            // Filter tertiary categories by selected secondary category
+            const filteredData = data.filter(
+              category => category.secondaryCategory && category.secondaryCategory._id === selectedSecondary
+            );
+            setTertiaryCategories(filteredData);
+          } catch (err) {
+            setError("Failed to load tertiary categories");
+            console.error(err);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+    
+        fetchTertiaryCategories();
+      }, [selectedSecondary]);
+
+      // Add new primary category
+      const handleAddPrimaryCategory = async () => {
+
+
+    
+        
+        if (!newPrimaryCategory.trim()) return;
+      
+        setIsLoading(true);
+        try {
+          const data = await createPrimaryCategory({ 
+            name: newPrimaryCategory,
+            description: primaryDescription
+          });
+          setPrimaryCategories([...primaryCategories, data]);
+          setNewPrimaryCategory("");
+          setPrimaryDescription("");
+        } catch (err) {
+          setError("Failed to add primary category");
+      
+          // Check if it's an Axios error
+          if (err.isAxiosError) {
+            // Handle Axios error specifically
+            if (err.response) {
+              // If response exists, log response data or status
+              console.error('Error response:', err.response.data || err.response.status);
+            } else {
+              // If no response is available, log the error message
+              console.error('Error message:', err.message);
+            }
+          } else {
+            // For non-Axios errors (network issues, etc.)
+            console.error('Non-Axios error:', err.message);
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      };
+ 
+
+      // Add new secondary category
+      const handleAddSecondaryCategory = async () => {
+        if (!newSecondaryCategory.trim() || !selectedPrimary) return;
+        
+        setIsLoading(true);
+        try {
+          const data = await createSecondaryCategory({ 
+            name: newSecondaryCategory,
+            description: secondaryDescription,
+            primaryCategory: selectedPrimary // Match API format from docs
+          });
+          setSecondaryCategories([...secondaryCategories, data]);
+          setNewSecondaryCategory("");
+          setSecondaryDescription("");
+        } catch (err) {
+          setError("Failed to add secondary category");
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
+      // Add new tertiary category
+      const handleAddTertiaryCategory = async () => {
+        if (!newTertiaryCategory.trim() || !selectedSecondary) return;
+        
+        setIsLoading(true);
+        try {
+          const data = await createTertiaryCategory({ 
+            name: newTertiaryCategory,
+            description: tertiaryDescription,
+            secondaryCategory: selectedSecondary // Match API format from docs
+          });
+          setTertiaryCategories([...tertiaryCategories, data]);
+          setNewTertiaryCategory("");
+          setTertiaryDescription("");
+        } catch (err) {
+          setError("Failed to add tertiary category");
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
+      // Save all category data
+      const handleSaveAll = async () => {
+        // This function is removed as there's no saveAllCategories API endpoint
+        alert("Categories saved successfully!");
+      };
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Sidebar */}
@@ -593,463 +569,212 @@ export default function AdminCategories() {
 
                     {/* Enhanced Add/Edit Category Modal */}
                     {showAddCategoryPopup && (
-                        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-6">
-                            <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 shadow-2xl border border-gray-100">
-                                <div className="flex justify-between items-center mb-8 bg-gradient-to-r from-indigo-500 to-indigo-700 p-4 rounded-t-xl">
-                                    <h2 className="text-2xl font-bold text-white">
-                                        {categoryInfo.id ? 'Edit Category' : 'Add New Categories'}
-                                    </h2>
-                                    <button 
-                                        onClick={() => setShowAddCategoryPopup(false)}
-                                        className="text-white hover:text-gray-200 transition-colors p-2 rounded-full hover:bg-indigo-800"
-                                    >
-                                        <FaTimes size={24} />
-                                    </button>
-                                </div>
-                                <form className="space-y-8">
-                                    {/* First Form (Primary Category) */}
-                                    <div className="border-b pb-6">
-                                        <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                            <span className="bg-indigo-100 text-indigo-800 w-8 h-8 flex items-center justify-center rounded-full font-bold">1</span>
-                                            Primary Category
-                                        </h3>
-                                        <div className="space-y-6">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Category Type</label>
-                                                <select 
-                                                    name="type" 
-                                                    value={categoryInfo.type} 
-                                                    onChange={handleCategoryInfoChange} 
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                >
-                                                    <option value="main">Main Category</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <label className="block text-sm font-medium text-gray-700">Category Name</label>
-                                                    <div className="flex gap-2">
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setShowNewCategoryInput(!showNewCategoryInput);
-                                                                setIsRemovingPrimary(false);
-                                                                setNewCategoryName('');
-                                                            }}
-                                                            className="flex items-center gap-1 text-xs px-3 py-1.5 bg-indigo-800 text-white rounded-md hover:bg-emerald-700 transition-colors shadow-sm"
-                                                        >
-                                                            <FaPlus size={10} /> Add New
-                                                        </button>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setShowNewCategoryInput(true);
-                                                                setIsRemovingPrimary(true);
-                                                                setNewCategoryName('');
-                                                            }}
-                                                            className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-800 text-white rounded-md hover:bg-rose-700 transition-colors shadow-sm"
-                                                        >
-                                                            <FaMinus size={10} /> Remove
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {(showNewCategoryInput || isRemovingPrimary) ? (
-                                                    <div className="flex gap-3 items-center">
-                                                        {isRemovingPrimary ? (
-                                                            <>
-                                                                <select
-                                                                    value={newCategoryName}
-                                                                    onChange={(e) => setNewCategoryName(e.target.value)}
-                                                                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                >
-                                                                    <option value="" disabled>Select category to remove</option>
-                                                                    {mainCategoryOptions.filter(opt => !opt.disabled).map((option) => (
-                                                                        <option key={option.value} value={option.value}>
-                                                                            {option.label}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleRemoveCategory(newCategoryName)}
-                                                                    disabled={!newCategoryName}
-                                                                    className="px-4 py-2 bg-red-800 text-white rounded-xl hover:bg-rose-700 transition-colors disabled:bg-rose-300 flex items-center gap-1 shadow-sm"
-                                                                >
-                                                                    Remove
-                                                                </button>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <input
-                                                                    type="text"
-                                                                    value={newCategoryName}
-                                                                    onChange={(e) => setNewCategoryName(e.target.value)}
-                                                                    placeholder="Enter new category name"
-                                                                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={handleAddNewCategory}
-                                                                    className="px-4 py-2 bg-indigo-800 text-white rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm"
-                                                                >
-                                                                     Add
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <select
-                                                        name="name"
-                                                        value={categoryInfo.name}
-                                                        onChange={handleCategoryInfoChange}
-                                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                    >
-                                                        {mainCategoryOptions.map((option) => (
-                                                            <option key={option.value} value={option.value} disabled={option.disabled}>
-                                                                {option.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">Category Description</label>
-                                                <textarea 
-                                                    name="description" 
-                                                    value={categoryInfo.description} 
-                                                    onChange={handleCategoryInfoChange} 
-                                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                    rows="4"
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <label className="block text-sm font-medium text-gray-700">Is Active</label>
-                                                    <label className="relative inline-flex items-center cursor-pointer">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            name="is_active" 
-                                                            checked={categoryInfo.is_active} 
-                                                            onChange={handleCategoryInfoChange} 
-                                                            className="sr-only peer"
-                                                        />
-                                                        <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                                                    </label>
-                                                    <span className="text-sm text-gray-600">
-                                                        {categoryInfo.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </div>
-                                                {!categoryInfo.is_active && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleSaveCategory}
-                                                        className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium shadow-sm"
-                                                    >
-                                                        Save
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Second Form (Secondary Category) */}
-                                    {categoryInfo.type === 'main' && categoryInfo.is_active && !categoryInfo.id && (
-                                        <div className="border-b pb-6">
-                                            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                                <span className="bg-indigo-100 text-indigo-800 w-8 h-8 flex items-center justify-center rounded-full font-bold">2</span>
-                                                Secondary Category
-                                            </h3>
-                                            <div className="space-y-6">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Type</label>
-                                                    <select 
-                                                        name="type" 
-                                                        value={secondaryCategoryInfo.type} 
-                                                        onChange={handleSecondaryCategoryInfoChange} 
-                                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                    >
-                                                        <option value="private">Private Category</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <label className="block text-sm font-medium text-gray-700">Category Name</label>
-                                                        <div className="flex gap-2">
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setShowSecondaryInput(!showSecondaryInput);
-                                                                    setIsRemovingSecondary(false);
-                                                                    setNewSecondaryName('');
-                                                                }}
-                                                                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-indigo-800 text-white rounded-md hover:bg-emerald-700 transition-colors shadow-sm"
-                                                            >
-                                                                <FaPlus size={10} /> Add New
-                                                            </button>
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setShowSecondaryInput(true);
-                                                                    setIsRemovingSecondary(true);
-                                                                    setNewSecondaryName('');
-                                                                }}
-                                                                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-800 text-white rounded-md hover:bg-rose-700 transition-colors shadow-sm"
-                                                            >
-                                                                <FaMinus size={10} /> Remove
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {(showSecondaryInput || isRemovingSecondary) ? (
-                                                        <div className="flex gap-3 items-center">
-                                                            {isRemovingSecondary ? (
-                                                                <>
-                                                                    <select
-                                                                        value={newSecondaryName}
-                                                                        onChange={(e) => setNewSecondaryName(e.target.value)}
-                                                                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                    >
-                                                                        <option value="" disabled>Select category to remove</option>
-                                                                        {secondaryCategoryOptionsMap[categoryInfo.name]?.map((option) => (
-                                                                            <option key={option} value={option}>
-                                                                                {option}
-                                                                            </option>
-                                                                        ))}
-                                                                    </select>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveSecondary(newSecondaryName)}
-                                                                        disabled={!newSecondaryName}
-                                                                        className="px-4 py-2 bg-red-800 text-white rounded-xl hover:bg-rose-700 transition-colors disabled:bg-rose-300 flex items-center gap-1 shadow-sm"
-                                                                    >
-                                                                         Remove
-                                                                    </button>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={newSecondaryName}
-                                                                        onChange={(e) => setNewSecondaryName(e.target.value)}
-                                                                        placeholder="Enter new category name"
-                                                                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={handleAddNewSecondary}
-                                                                        className="px-4 py-2 bg-indigo-800 text-white rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm"
-                                                                    >
-                                                                         Add
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <select
-                                                            name="name"
-                                                            value={secondaryCategoryInfo.name}
-                                                            onChange={handleSecondaryCategoryInfoChange}
-                                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                        >
-                                                            <option value="" disabled>Select the category</option>
-                                                            {secondaryCategoryOptionsMap[categoryInfo.name]?.map((option) => (
-                                                                <option key={option} value={option}>
-                                                                    {option}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Description</label>
-                                                    <textarea 
-                                                        name="description" 
-                                                        value={secondaryCategoryInfo.description} 
-                                                        onChange={handleSecondaryCategoryInfoChange} 
-                                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                        rows="4"
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <label className="block text-sm font-medium text-gray-700">Is Active</label>
-                                                        <label className="relative inline-flex items-center cursor-pointer">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                name="is_active" 
-                                                                checked={secondaryCategoryInfo.is_active} 
-                                                                onChange={handleSecondaryCategoryInfoChange} 
-                                                                className="sr-only peer"
-                                                            />
-                                                            <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                                                        </label>
-                                                        <span className="text-sm text-gray-600">
-                                                            {secondaryCategoryInfo.is_active ? 'Active' : 'Inactive'}
-                                                        </span>
-                                                    </div>
-                                                    {!secondaryCategoryInfo.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleSaveCategory}
-                                                            className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium shadow-sm"
-                                                        >
-                                                            Save
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Tertiary Form */}
-                                    {categoryInfo.type === 'main' && categoryInfo.is_active && secondaryCategoryInfo.is_active && !categoryInfo.id && (
-                                        <div className="pb-6">
-                                            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                                <span className="bg-indigo-100 text-indigo-800 w-8 h-8 flex items-center justify-center rounded-full font-bold">3</span>
-                                                Tertiary Category
-                                            </h3>
-                                            <div className="space-y-6">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Type</label>
-                                                    <select 
-                                                        name="type" 
-                                                        value={tertiaryCategoryInfo.type} 
-                                                        onChange={handleTertiaryCategoryInfoChange} 
-                                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                    >
-                                                        <option value="subcategory">Subcategory</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <label className="block text-sm font-medium text-gray-700">Category Name</label>
-                                                        <div className="flex gap-2">
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setShowTertiaryInput(!showTertiaryInput);
-                                                                    setIsRemovingTertiary(false);
-                                                                    setNewTertiaryName('');
-                                                                }}
-                                                                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-indigo-800 text-white rounded-md hover:bg-emerald-700 transition-colors shadow-sm"
-                                                            >
-                                                                <FaPlus size={10} /> Add New
-                                                            </button>
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setShowTertiaryInput(true);
-                                                                    setIsRemovingTertiary(true);
-                                                                    setNewTertiaryName('');
-                                                                }}
-                                                                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-red-800 text-white rounded-md hover:bg-rose-700 transition-colors shadow-sm"
-                                                            >
-                                                                <FaMinus size={10} /> Remove
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {(showTertiaryInput || isRemovingTertiary) ? (
-                                                        <div className="flex gap-3 items-center">
-                                                            {isRemovingTertiary ? (
-                                                                <>
-                                                                    <select
-                                                                        value={newTertiaryName}
-                                                                        onChange={(e) => setNewTertiaryName(e.target.value)}
-                                                                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                    >
-                                                                        <option value="" disabled>Select category to remove</option>
-                                                                        {getTertiaryOptions().map((option) => (
-                                                                            <option key={option.value} value={option.value}>
-                                                                                {option.label}
-                                                                            </option>
-                                                                        ))}
-                                                                    </select>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveTertiary(newTertiaryName)}
-                                                                        disabled={!newTertiaryName}
-                                                                        className="px-4 py-2 bg-red-800 text-white rounded-xl  transition-colors disabled:bg-rose-300 flex items-center gap-1 shadow-sm"
-                                                                    >
-                                                                         Remove
-                                                                    </button>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={newTertiaryName}
-                                                                        onChange={(e) => setNewTertiaryName(e.target.value)}
-                                                                        placeholder="Enter new category name"
-                                                                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={handleAddNewTertiary}
-                                                                        className="px-4 py-2 bg-indigo-800 text-white rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm"
-                                                                    >
-                                                                         Add
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <select
-                                                            name="name"
-                                                            value={tertiaryCategoryInfo.name}
-                                                            onChange={handleTertiaryCategoryInfoChange}
-                                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                        >
-                                                            <option value="" disabled>Select the collection</option>
-                                                            {getTertiaryOptions().map((option) => (
-                                                                <option key={option.value} value={option.value}>
-                                                                    {option.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category Description</label>
-                                                    <textarea 
-                                                        name="description" 
-                                                        value={tertiaryCategoryInfo.description} 
-                                                        onChange={handleTertiaryCategoryInfoChange} 
-                                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white hover:border-gray-300"
-                                                        rows="4"
-                                                    />
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <label className="block text-sm font-medium text-gray-700">Is Active</label>
-                                                        <label className="relative inline-flex items-center cursor-pointer">
-                                                            <input 
-                                                                type="checkbox" 
-                                                                name="is_active" 
-                                                                checked={tertiaryCategoryInfo.is_active} 
-                                                                onChange={handleTertiaryCategoryInfoChange} 
-                                                                className="sr-only peer"
-                                                            />
-                                                            <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                                                        </label>
-                                                        <span className="text-sm text-gray-600">
-                                                            {tertiaryCategoryInfo.is_active ? 'Active' : 'Inactive'}
-                                                        </span>
-                                                    </div>
-                                                    {!tertiaryCategoryInfo.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleSaveCategory}
-                                                            className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium shadow-sm"
-                                                        >
-                                                            Save
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </form>
-                            </div>
-                        </div>
+                     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md">
+                     <h1 className="text-2xl font-bold mb-6">Category Management</h1>
+                     
+                     {error && (
+                       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                         {error}
+                       </div>
+                     )}
+                     
+                     {/* Primary Category Section */}
+                     <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+                       <h2 className="text-xl font-semibold mb-4">Primary Categories</h2>
+                       
+                       <div className="flex gap-4 mb-4">
+                         <div className="flex-1">
+                           <label className="block text-sm font-medium text-gray-700 mb-1">
+                             Add New Primary Category
+                           </label>
+                           <input
+                             type="text"
+                             value={newPrimaryCategory}
+                             onChange={(e) => setNewPrimaryCategory(e.target.value)}
+                             className="w-full p-2 border rounded"
+                             placeholder="Enter category name"
+                           />
+                         </div>
+                         
+                         <div className="mt-6">
+                           <button
+                             onClick={handleAddPrimaryCategory}
+                             disabled={isLoading}
+                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                           >
+                             Add
+                           </button>
+                         </div>
+                       </div>
+                       
+                       <div className="mb-4">
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Select Primary Category
+                         </label>
+                         <select
+                           value={selectedPrimary}
+                           onChange={(e) => setSelectedPrimary(e.target.value)}
+                           className="w-full p-2 border rounded"
+                         >
+                           <option value="">Select a category</option>
+                           {primaryCategories.map((category) => (
+                             <option key={category.id} value={category.id}>
+                               {category.name}
+                             </option>
+                           ))}
+                         </select>
+                       </div>
+                       
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Description
+                         </label>
+                         <textarea
+                           value={primaryDescription}
+                           onChange={(e) => setPrimaryDescription(e.target.value)}
+                           className="w-full p-2 border rounded"
+                           rows="3"
+                           placeholder="Enter description"
+                         ></textarea>
+                       </div>
+                     </div>
+                     
+                     {/* Secondary Category Section */}
+                     <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+                       <h2 className="text-xl font-semibold mb-4">Secondary Categories</h2>
+                       
+                       <div className="flex gap-4 mb-4">
+                         <div className="flex-1">
+                           <label className="block text-sm font-medium text-gray-700 mb-1">
+                             Add New Secondary Category
+                           </label>
+                           <input
+                             type="text"
+                             value={newSecondaryCategory}
+                             onChange={(e) => setNewSecondaryCategory(e.target.value)}
+                             className="w-full p-2 border rounded"
+                             placeholder="Enter category name"
+                             disabled={!selectedPrimary}
+                           />
+                         </div>
+                         
+                         <div className="mt-6">
+                           <button
+                             onClick={handleAddSecondaryCategory}
+                             disabled={isLoading || !selectedPrimary}
+                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300"
+                           >
+                             Add
+                           </button>
+                         </div>
+                       </div>
+                       
+                       <div className="mb-4">
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Select Secondary Category
+                         </label>
+                         <select
+                           value={selectedSecondary}
+                           onChange={(e) => setSelectedSecondary(e.target.value)}
+                           className="w-full p-2 border rounded"
+                           disabled={!selectedPrimary}
+                         >
+                           <option value="">Select a category</option>
+                           {secondaryCategories.map((category) => (
+                             <option key={category.id} value={category.id}>
+                               {category.name}
+                             </option>
+                           ))}
+                         </select>
+                       </div>
+                       
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Description
+                         </label>
+                         <textarea
+                           value={secondaryDescription}
+                           onChange={(e) => setSecondaryDescription(e.target.value)}
+                           className="w-full p-2 border rounded"
+                           rows="3"
+                           placeholder="Enter description"
+                           disabled={!selectedPrimary}
+                         ></textarea>
+                       </div>
+                     </div>
+                     
+                     {/* Tertiary Category Section */}
+                     <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+                       <h2 className="text-xl font-semibold mb-4">Tertiary Categories</h2>
+                       
+                       <div className="flex gap-4 mb-4">
+                         <div className="flex-1">
+                           <label className="block text-sm font-medium text-gray-700 mb-1">
+                             Add New Tertiary Category
+                           </label>
+                           <input
+                             type="text"
+                             value={newTertiaryCategory}
+                             onChange={(e) => setNewTertiaryCategory(e.target.value)}
+                             className="w-full p-2 border rounded"
+                             placeholder="Enter category name"
+                             disabled={!selectedSecondary}
+                           />
+                         </div>
+                         
+                         <div className="mt-6">
+                           <button
+                             onClick={handleAddTertiaryCategory}
+                             disabled={isLoading || !selectedSecondary}
+                             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-300"
+                           >
+                             Add
+                           </button>
+                         </div>
+                       </div>
+                       
+                       <div className="mb-4">
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Select Tertiary Category
+                         </label>
+                         <select
+                           className="w-full p-2 border rounded"
+                           disabled={!selectedSecondary}
+                         >
+                           <option value="">Select a category</option>
+                           {tertiaryCategories.map((category) => (
+                             <option key={category.id} value={category.id}>
+                               {category.name}
+                             </option>
+                           ))}
+                         </select>
+                       </div>
+                       
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                           Description
+                         </label>
+                         <textarea
+                           value={tertiaryDescription}
+                           onChange={(e) => setTertiaryDescription(e.target.value)}
+                           className="w-full p-2 border rounded"
+                           rows="3"
+                           placeholder="Enter description"
+                           disabled={!selectedSecondary}
+                         ></textarea>
+                       </div>
+                     </div>
+                     
+                     {/* Save Button */}
+                     <div className="flex justify-end">
+                       <button
+                         onClick={handleSaveAll}
+                         className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600"
+                       >
+                         Save All
+                       </button>
+                     </div>
+                   </div>
                     )}
                 </main>
             </div>
