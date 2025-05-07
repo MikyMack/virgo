@@ -3,8 +3,6 @@ import { FaUserCircle, FaCog, FaSignOutAlt, FaBars, FaTimes, FaRegEdit, FaPlus, 
 import { MdDeleteForever } from "react-icons/md";
 import { Link } from 'react-router-dom';
 import AdminHeader from '../Header/AdminHeader';
-import bgim from "../../../assets/banner/dashboarbg.jpg";
-import { CategoriesList, CreateCategory } from '../../../actions/adminactions/categories/categoriesactions';
 
 export default function AdminCategories() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -71,17 +69,17 @@ export default function AdminCategories() {
     const [tertiaryCategoryOptions, setTertiaryCategoryOptions] = useState({});
     const [removedTertiaryCategories, setRemovedTertiaryCategories] = useState({});
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const data = await CategoriesList();
-                setCategories(data);
-            } catch (error) {
-                console.error("Failed to fetch categories:", error);
-            }
-        };
-        fetchCategories();
-    }, []);
+    // useEffect(() => {
+    //     const fetchCategories = async () => {
+    //         try {
+    //             const data = await CategoriesList();
+    //             setCategories(data);
+    //         } catch (error) {
+    //             console.error("Failed to fetch categories:", error);
+    //         }
+    //     };
+    //     fetchCategories();
+    // }, []);
 
     const toggleMenu = () => setMenuOpen(!menuOpen);
     const toggleProfileMenu = () => setProfileMenuOpen(!profileMenuOpen);
