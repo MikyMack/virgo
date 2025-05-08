@@ -1,6 +1,6 @@
 import api from "../../../utils/axios";
 
-// Helper for protected admin routes
+
 const adminConfig = {
   headers: { _isAdmin: true }
 };
