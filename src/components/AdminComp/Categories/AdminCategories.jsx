@@ -267,7 +267,7 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
       const categoryData = {
         name: newSecondaryCategory,
         description: secondaryDescription,
-        primaryCategory: selectedPrimary._id, // Only ID sent
+        primaryCategory: selectedPrimary._id,
       };
   
       if (selectedSecondary) {
@@ -284,6 +284,8 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
         setAllSecondaryCategories(prev =>
           prev.map(cat => (cat._id === selectedSecondary._id ? updatedCategory : cat))
         );
+  
+        alert("Secondary category updated successfully!");
       } else {
         // Create
         const response = await createSecondaryCategory(categoryData);
@@ -296,6 +298,8 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
         };
   
         setAllSecondaryCategories(prev => [...prev, newCategory]);
+  
+        alert("Secondary category created successfully!");
       }
   
       // Reset form
@@ -309,6 +313,7 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
       setIsLoading(false);
     }
   };
+  
   
 
   //   delete secondary category
@@ -387,36 +392,38 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
       const payload = {
         name: newTertiaryCategory.trim(),
         description: tertiaryDescription,
-        secondaryCategory: selectedSecondary._id, // ONLY ID
+        secondaryCategory: selectedSecondary._id,
       };
   
       if (selectedTertiary) {
         // Update
         const updated = await updateTertiaryCategory(selectedTertiary._id, payload);
         
-        // Ensure only ID is stored in state
         setAllTertiaryCategories(prev => 
           prev.map(cat => 
             cat._id === updated._id 
               ? {
                   ...updated,
-                  secondaryCategory: updated.secondaryCategory._id || updated.secondaryCategory // Force ID only
+                  secondaryCategory: updated.secondaryCategory._id || updated.secondaryCategory
                 } 
               : cat
           )
         );
+  
+        alert("✅ Tertiary category updated successfully!");
       } else {
         // Create
         const newCategory = await createTertiaryCategory(payload);
         
-        // Ensure only ID is stored in state
         setAllTertiaryCategories(prev => [
           ...prev,
           {
             ...newCategory,
-            secondaryCategory: newCategory.secondaryCategory._id || newCategory.secondaryCategory // Force ID only
+            secondaryCategory: newCategory.secondaryCategory._id || newCategory.secondaryCategory
           }
         ]);
+  
+        alert("✅ Tertiary category created successfully!");
       }
   
       // Reset form
@@ -429,6 +436,7 @@ const [allTertiaryCategories, setAllTertiaryCategories] = useState([]);
       setIsLoading(false);
     }
   };
+  
 //   delete teritory category
 const handleDeleteTertiary = async () => {
     if (!selectedTertiary || !confirm("Delete this category?")) return;
