@@ -18,6 +18,8 @@ export default function AdminCustomers() {
     const [nameError, setNameError] = useState('');
     const [idError, setIdError] = useState('');
     const [dateError, setDateError] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
 
     const initialCustomers = [
         { id: 1, joiningDate: '2024-01-01', name: 'Sara', email: 'sara@example.com', phone: '1234567890' },
@@ -31,25 +33,40 @@ export default function AdminCustomers() {
     ];
 
     const [customers, setCustomers] = useState(() => {
-        const savedCustomers = localStorage.getItem('customers');
-        const parsedCustomers = savedCustomers ? JSON.parse(savedCustomers) : initialCustomers;
-        return parsedCustomers.sort((a, b) => a.id - b.id); // Sort initially by id
+        try {
+            const savedCustomers = localStorage.getItem('customers');
+            const parsedCustomers = savedCustomers ? JSON.parse(savedCustomers) : initialCustomers;
+            return parsedCustomers.sort((a, b) => a.id - b.id);
+        } catch (error) {
+            console.error('Error parsing customers from localStorage:', error);
+            return initialCustomers.sort((a, b) => a.id - b.id);
+        }
     });
 
     useEffect(() => {
-        localStorage.setItem('customers', JSON.stringify(customers));
+        try {
+            localStorage.setItem('customers', JSON.stringify(customers));
+        } catch (error) {
+            console.error('Error saving customers to localStorage:', error);
+        }
     }, [customers]);
 
     const filteredCustomers = customers
-        .filter(customer => 
+        .filter(customer =>
             customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.phone.includes(searchTerm)
         )
-        .sort((a, b) => a.id - b.id); // Sort filtered customers by id
+        .sort((a, b) => a.id - b.id);
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
 
     const handleResetSearch = () => {
         setSearchTerm('');
+        setCurrentPage(1);
     };
 
     const handleEditCustomer = (customer) => {
@@ -112,9 +129,9 @@ export default function AdminCustomers() {
         }
 
         if (isValid) {
-            const updatedCustomers = customers.map(customer => 
+            const updatedCustomers = customers.map(customer =>
                 customer.id === editCustomer.id ? editCustomer : customer
-            ).sort((a, b) => a.id - b.id); // Sort after editing
+            ).sort((a, b) => a.id - b.id);
             setCustomers(updatedCustomers);
             setEditPopupOpen(false);
             setEditCustomer(null);
@@ -141,8 +158,11 @@ export default function AdminCustomers() {
 
     const handleDeleteCustomer = (customerId) => {
         if (window.confirm('Are you sure you want to delete this customer?')) {
-            const updatedCustomers = customers.filter(customer => customer.id !== customerId).sort((a, b) => a.id - b.id); // Sort after deletion
+            const updatedCustomers = customers.filter(customer => customer.id !== customerId).sort((a, b) => a.id - b.id);
             setCustomers(updatedCustomers);
+            if (currentCustomers.length === 1 && currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+            }
         }
     };
 
@@ -195,16 +215,18 @@ export default function AdminCustomers() {
         }
 
         if (isValid) {
-            const updatedCustomers = [...customers, { 
-                id: parseInt(newCustomer.id, 10), 
-                joiningDate: newCustomer.joiningDate, 
-                name: newCustomer.name, 
-                email: newCustomer.email, 
-                phone: newCustomer.phone 
-            }].sort((a, b) => a.id - b.id); // Sort after adding
+            const updatedCustomers = [...customers, {
+                id: parseInt(newCustomer.id, 10),
+                joiningDate: newCustomer.joiningDate,
+                name: newCustomer.name,
+                email: newCustomer.email,
+                phone: newCustomer.phone
+            }].sort((a, b) => a.id - b.id);
             setCustomers(updatedCustomers);
             setAddPopupOpen(false);
             setNewCustomer({ id: '', joiningDate: '', name: '', email: '', phone: '' });
+            const newTotalPages = Math.ceil((filteredCustomers.length + 1) / itemsPerPage);
+            setCurrentPage(newTotalPages);
         }
     };
 
@@ -217,6 +239,8 @@ export default function AdminCustomers() {
         setIdError('');
         setDateError('');
     };
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -278,7 +302,10 @@ export default function AdminCustomers() {
                                 type="text"
                                 placeholder="Search by name, email, or phone"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="w-full sm:w-64 px-4 py-2 bg-gray-200 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-800 outline-none transition-colors"
                             />
                             <div className="flex gap-3">
@@ -314,8 +341,8 @@ export default function AdminCustomers() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredCustomers.length > 0 ? (
-                                        filteredCustomers.map((customer) => (
+                                    {currentCustomers.length > 0 ? (
+                                        currentCustomers.map((customer) => (
                                             <tr key={customer.id} className="border-b last:border-b-0 hover:bg-gray-50">
                                                 <td className="py-4 px-4 text-sm text-gray-600">{customer.id}</td>
                                                 <td className="py-4 px-4 text-sm text-gray-600">{customer.joiningDate}</td>
@@ -352,6 +379,44 @@ export default function AdminCustomers() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Pagination */}
+                        {filteredCustomers.length > itemsPerPage && (
+                            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+                                <div className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
+                                    <span className="font-medium">
+                                        {Math.min(indexOfLastItem, filteredCustomers.length)}
+                                    </span>{' '}
+                                    of <span className="font-medium">{filteredCustomers.length}</span> results
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => paginate(Math.max(1, currentPage - 1))}
+                                        disabled={currentPage === 1}
+                                        className={`px-4 py-2 border rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        Previous
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                                        <button
+                                            key={number}
+                                            onClick={() => paginate(number)}
+                                            className={`px-4 py-2 border rounded-md ${currentPage === number ? 'bg-indigo-800 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                                        >
+                                            {number}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className={`px-4 py-2 border rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </main>
 
