@@ -7,6 +7,7 @@ import ProtectedRoutes from "../utils/ProtectedRoutes";
 import Profile from "../components/Profile/Profile";
 import PublicRoutes from '../utils/PublicRoutes';
 
+
 const Home = lazy(() => import("../pages/Home/Home"));
 const Account = lazy(() => import("../pages/Account/Account"));
 const ShopVirgo = lazy(() => import("../pages/Shop/ShopVirgo"));
@@ -22,6 +23,8 @@ const AdminOrders = lazy(() => import("../components/AdminComp/Orders/AdminOrder
 const AdminCustomers = lazy(() => import("../components/AdminComp/Customers/AdminCustomers"));
 const AdminCoupons = lazy(() => import("../components/AdminComp/Coupons/AdminCoupons"));
 const AdminBanners = lazy(() => import("../components/AdminComp/Banners/AdminBanners"));
+const AdminSettings =lazy(() => import ("../components/AdminComp/Settings/AdminSettings"));
+const OrdersVirgo =lazy(() => import ("../pages/Orders/OrdersVirgo"));
 
 export default function MainRoutes() {
     return (
@@ -40,6 +43,8 @@ export default function MainRoutes() {
             <Route path="/productdetails/:id" element={<ProductDetailsVirgo />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/orders" element={<OrdersVirgo />} />
+            
       
             {/* Admin Login Route - public */}
             <Route element={<PublicRoutes />}>
@@ -47,7 +52,7 @@ export default function MainRoutes() {
             </Route>
       
             {/* Protected Admin Routes */}
-            <Route element={<ProtectedRoutes />}>
+            
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<ProductsAdmin />} />
               <Route path="/admin/category" element={<AdminCategories />} />
@@ -55,7 +60,7 @@ export default function MainRoutes() {
               <Route path="/admin/customers" element={<AdminCustomers />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/admin/banners" element={<AdminBanners />} />
-            </Route>
+              <Route path="/admin/settings" element={<AdminSettings />} />
       
           </Routes>
         </Suspense>

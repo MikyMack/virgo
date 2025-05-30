@@ -1,0 +1,101 @@
+/* Card Container */
+.card {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 400px;
+  height: 250px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Inner Wrapper */
+.card-inner {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+/* Flip Animation */
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+/* Front & Back Shared Styles */
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: linear-gradient(45deg, #2a2a2a, #4a4a4a);
+}
+
+/* Front Side */
+.card-front {
+  transform: rotateY(0deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Back Side */
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* Card Logo */
+.card-logo {
+  text-align: right;
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* Chip */
+.chip {
+  width: 50px;
+  height: 40px;
+  background: linear-gradient(45deg, #ffd700, #c5a600);
+  border-radius: 5px;
+}
+
+/* Card Number */
+.card-number {
+  font-family: 'Courier New', monospace;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  color: white;
+  margin: 15px 0;
+}
+
+/* Holder & Expiry */
+.card-details {
+  display: flex;
+  justify-content: space-between;
+  color: white;
+}
+
+.card-holder {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+}
+
+.expiry-date {
+  font-size: 1rem;
+  color: white;
+}
+
+/* CVV Strip (Back side) */
+.cvv-strip {
+  background: #fff;
+  height: 40px;
+  margin: 20px -20px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}

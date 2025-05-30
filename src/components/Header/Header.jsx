@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import logo from '../../assets/logo/logo.webp';
-import { HiOutlineShoppingCart } from 'react-icons/hi2';
 import { FiMenu } from 'react-icons/fi';
-import { CiSearch, CiHeart, CiSquareRemove } from 'react-icons/ci';
+import { CiSearch, CiSquareRemove, CiUser, CiShoppingCart, CiHeart, CiBoxList } from 'react-icons/ci';
 import DesktopNav from './DesktopNav';
 import MobileNav from './MobileNav';
 import './header.css';
@@ -21,12 +20,13 @@ export default function Header() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [recentSearches, setRecentSearches] = useState([]);
   const [showCategories, setShowCategories] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const searchRef = useRef(null);
   const inputRef = useRef(null);
   const headerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
-
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     setUser(loggedInUser);
     const updateCounts = () => {
@@ -65,20 +65,21 @@ export default function Header() {
     };
   }, []);
 
-
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSearch(false);
       }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
     };
 
-    if (showSearch) {
+    if (showSearch || showProfileDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showSearch]);
+  }, [showSearch, showProfileDropdown]);
 
   useEffect(() => {
     if (showSearch && inputRef.current) {
@@ -161,17 +162,14 @@ export default function Header() {
                 fontFamily: "'Playfair Display', serif",
                 letterSpacing: '-0.03em',
                 fontWeight: 900,
-                color: '#1px 1px 2px rgba(0,0,0,0.1)', // Darker text color for contrast
+                color: '#1px 1px 2px rgba(0,0,0,0.1)',
               }}>
               VIRGO
             </span>
           </div>
 
-
           {/* Mobile Menu */}
-          {/* Mobile Menu */}
-          <div className="flex items-center lg:hidden space-x-4"> {/* Added space-x-4 */}
-            {/* Mobile Search Button */}
+          <div className="flex items-center lg:hidden space-x-4">
             <div
               className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-all"
               onClick={() => setShowSearch(true)}
@@ -187,53 +185,96 @@ export default function Header() {
 
           {/* Account and Cart */}
           <div className="flex space-x-6 items-center font-semibold">
-          <div className="hidden lg:flex space-x-6 items-center">
-      {!user ? (
-        <Link to="/register">
-          <div className="flex space-x-2">
-            <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-              LOGIN
-            </p>
-            <span className="text-gray-400">/</span>
-            <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-              REGISTER
-            </p>
-          </div>
-        </Link>
-      ) : (
-        <Link to="/profile" className="flex items-center gap-2">   
-          <img 
-            src={user.avatar || profile} 
-            alt="Profile" 
-            className="w-8 h-8 rounded-full object-cover"
-          />
-          <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
-            PROFILE
-          </p>
-        </Link>
-      )}
+            <div className="hidden lg:flex space-x-6 items-center">
+              {!user ? (
+                <Link to="/register">
+                  <div className="flex space-x-2">
+                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                      LOGIN
+                    </p>
+                    <span className="text-gray-400">/</span>
+                    <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                      REGISTER
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <Link to="/profile" className="flex items-center gap-2">
+                  <img
+                    src={user.avatar || profile}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <p className="text-gray-700 hover:text-black font-semibold cursor-pointer">
+                    PROFILE
+                  </p>
+                </Link>
+              )}
 
-      <Link to="/wishlist">
-        <div className="relative">
-          <CiHeart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
-          {wishlistCount > 0 && (
-            <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
-              {wishlistCount}
-            </span>
-          )}
-        </div>
-      </Link>
-    </div>
-            <Link to='/cart'>
-              <div className="relative">
-                <HiOutlineShoppingCart className="text-gray-700 hover:text-black w-8 h-8 cursor-pointer" />
-                {cartCount > 0 && (
-                  <span className="absolute top-0 left-5 bg-secondary text-white text-xs rounded-full px-1.5 py-0.5">
-                    {cartCount}
-                  </span>
+              {/* Profile Icon with Monochromatic Dropdown */}
+              <div className="relative profile-dropdown-container" ref={dropdownRef}>
+                <div
+                  className="w-10 h-10 flex items-center justify-center cursor-pointer"
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                >
+                  <CiUser className="text-gray-800 hover:text-black w-8 h-8" />
+                </div>
+                {showProfileDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-900/95 shadow-lg rounded-lg z-[100] border border-gray-700/30 profile-dropdown animate-fadeIn">
+                    <Link
+                      to="/profile"
+                      className="flex items-center justify-between px-4 py-2 text-sm text-white hover:bg-gray-700/40 transition-colors"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CiUser className="w-5 h-5" />
+                        <span>My Profile</span>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="flex items-center justify-between px-4 py-2 text-sm text-white hover:bg-gray-700/40 transition-colors"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CiBoxList className="w-5 h-5" />
+                        <span>Orders</span>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/wishlist"
+                      className="flex items-center justify-between px-4 py-2 text-sm text-white hover:bg-gray-700/40 transition-colors"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CiHeart className="w-5 h-5" />
+                        <span>Wishlist</span>
+                      </div>
+                      {wishlistCount > 0 && (
+                        <span className="bg-blue-gray-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      to="/cart"
+                      className="flex items-center justify-between px-4 py-2 text-sm text-white hover:bg-gray-700/40 transition-colors"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CiShoppingCart className="w-5 h-5" />
+                        <span>Cart</span>
+                      </div>
+                      {cartCount > 0 && (
+                        <span className="bg-blue-gray-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                          {cartCount}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
                 )}
               </div>
-            </Link>
+            </div>
           </div>
         </div>
 
@@ -311,7 +352,7 @@ export default function Header() {
                 </h3>
                 {showCategories && (
                   <div className="grid grid-cols-2 gap-3">
-                    {['Candles', 'Diffusers', 'Room Sprays', 'Gift Sets', 'Accessories'].map(category => (
+                    {['Candles', 'Candle Holder', ' Sachets', 'Charms & Melts', 'Diyas','Table Tops'].map(category => (
                       <Link
                         key={category}
                         to={`/category/${category.toLowerCase().replace(' ', '-')}`}
