@@ -64,18 +64,21 @@ export default function ProductsAdmin() {
     tags: "",
     image_url: "",
     variants: [
-      {
-        variant_options: [],
-        original_price: "",
-        current_price: "",
-        price_with_offer: "",
-        variant_data: {},
-        stock: null,
-        variant_type: "",
-        option_value: "",
-      },
+      
     ],
   });
+const [editVariants, setEditVariants] = useState([
+  // This will contain our editable variant copies
+  {
+    color: "",
+    size: "",
+    price: 0,
+    stock: 0,
+    images: [],       // New images to upload
+    existingImages: [], // Existing images from API
+    imagesToDelete: []  // Images marked for deletion
+  }
+]);
   const [products, setProducts] = useState([]);
   const [variantTypes, setVariantTypes] = useState([]);
   const [variantOptions, setVariantOptions] = useState([]);
@@ -455,11 +458,35 @@ export default function ProductsAdmin() {
       setIsSubmitting(false);
     }
   };
-
+const handleVariantChange = (index, field, value) => {
+    const updatedVariants = [...variants];
+    updatedVariants[index][field] = value;
+    setVariants(updatedVariants);
+  };
   // edit
 
 // Fixed handleEditProduct function
+
 // Fixed handleEditProduct function
+const handleEditVariant = (index, field, value) => {
+  setEditVariants(prev => {
+    const updated = [...prev];
+    
+    if (['price', 'stock'].includes(field)) {
+      updated[index] = {
+        ...updated[index],
+        [field]: value === '' ? '' : Number(value)
+      };
+    } else {
+      updated[index] = {
+        ...updated[index],
+        [field]: value
+      };
+    }
+    
+    return updated;
+  });
+};
 const handleEditProductSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
@@ -535,24 +562,18 @@ const handleEditProductSubmit = async (e) => {
     }
 
     // Append variant images exactly like create function (using 'variantImages' key)
-    editProductInfo.variants.forEach((variant, variantIndex) => {
-      if (variant.images && variant.images.length > 0) {
-        variant.images.forEach((file) => {
-          formData.append('variantImages', file);
-        });
-      }
+    editProductInfo.mainImages.forEach(file => {
+      formData.append('images', file);
     });
 
     // Add variant index mapping for backend to know which image belongs to which variant
-    const variantImageIndexes = [];
-    editProductInfo.variants.forEach((variant, variantIndex) => {
-      if (variant.images && variant.images.length > 0) {
-        variant.images.forEach(() => {
-          variantImageIndexes.push(variantIndex);
-        });
-      }
+  const variantImageIndexes = [];
+    editVariants.forEach((variant, variantIndex) => {
+      variant.images.forEach(() => {
+        variantImageIndexes.push(variantIndex);
+        formData.append(`variantImages[${variantIndex}]`, file);
+      });
     });
-    
     if (variantImageIndexes.length > 0) {
       formData.append('variantImageIndexes', JSON.stringify(variantImageIndexes));
     }
@@ -586,7 +607,7 @@ const handleEditProduct = async (product) => {
     const response = await getProductById(product._id);
     const productData = response.product || response;
 
-    // Convert variants to the format expected by your form
+    // Convert variants to editable format
     const formattedVariants = productData.variants?.map(variant => {
       let existingImages = [];
       
@@ -597,53 +618,67 @@ const handleEditProduct = async (product) => {
       }
 
       return {
+        _id: variant._id, // Preserve original ID
         color: variant.color || '',
         size: variant.size || '',
         price: variant.price || 0,
         stock: variant.stock || 0,
-        images: [], // New images to upload
-        existingImages: existingImages, // Current images from server
-        imagesToDelete: [] // Track deleted variant images
-      };
-    }) || [];
-
-    // If no variants exist, create one default variant
-    if (formattedVariants.length === 0) {
-      formattedVariants.push({
-        color: '', 
-        size: '', 
-        price: 0, 
-        stock: 0, 
-        images: [], 
-        existingImages: [],
+        images: [],
+        existingImages: existingImages,
         imagesToDelete: []
-      });
-    }
-
-    const originalMainImages = productData.images || [];
+      };
+    }) || [{
+      color: '', size: '', price: 0, stock: 0,
+      images: [], existingImages: [], imagesToDelete: []
+    }];
 
     setEditProductInfo({
       ...productData,
-      variants: formattedVariants,
-      showVariants: productData.variants?.length > 0,
-      existingMainImages: [...originalMainImages], // Current images (will be modified)
-      originalMainImages: [...originalMainImages], // Store original for reference
-      mainImages: [], // Changed from null to empty array
-      mainImagesToDelete: [] // Track deleted main images
+      variants: productData.variants || [], // Keep original structure
+      existingMainImages: productData.images || [],
+      originalMainImages: productData.images || [],
+      mainImages: [],
+      mainImagesToDelete: []
     });
 
-    // Set category selections
+    setEditVariants(formattedVariants); // Set editable variants
+
+    // Set categories
     setSelectedPrimary(productData.primaryCategory?._id || '');
     setSelectedSecondary(productData.secondaryCategory?._id || '');
     setSelectedTertiary(productData.tertiaryCategory?._id || '');
 
     setShowEditProductPopup(true);
   } catch (error) {
-    setError("Failed to fetch product details");
-    console.error(error);
     toast.error("Failed to fetch product details");
+    console.error(error);
   }
 };
+const handleRemoveVariant = (index) => {
+  if (editVariants.length <= 1) {
+    alert("At least one variant is required");
+    return;
+  }
+  
+  setEditVariants(prev => prev.filter((_, i) => i !== index));
+};
+const handleAddVariant = () => {
+  setEditVariants(prev => [
+    ...prev,
+    {
+      color: "",
+      size: "",
+      price: 0,
+      stock: 0,
+      images: [],
+      existingImages: [],
+      imagesToDelete: []
+    }
+  ]);
+};
+
+
+
 
 // Fixed main image upload handler
 const handleEditMainImageUpload = (e) => {
@@ -1915,14 +1950,7 @@ const removeEditVariant = (index) => {
                 type="text"
                 placeholder="Color"
                 value={variant.color || ""}
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setEditProductInfo(prev => {
-                    const updatedVariants = [...prev.variants];
-                    updatedVariants[index] = { ...updatedVariants[index], color: value };
-                    return { ...prev, variants: updatedVariants };
-                  });
-                }}
+               onChange={(e) => { handleEditVariant(index, 'color', e.target.value) }}
                 className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
@@ -1931,14 +1959,7 @@ const removeEditVariant = (index) => {
                 type="text"
                 placeholder="Size"
                 value={variant.size || ""}
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setEditProductInfo(prev => {
-                    const updatedVariants = [...prev.variants];
-                    updatedVariants[index] = { ...updatedVariants[index], size: value };
-                    return { ...prev, variants: updatedVariants };
-                  });
-                }}
+               onChange={(e) => { handleEditVariant(index, 'size', e.target.value) }}
                 className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
@@ -1950,17 +1971,7 @@ const removeEditVariant = (index) => {
                 min="0"
                 step="0.01"
                 required
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setEditProductInfo(prev => {
-                    const updatedVariants = [...prev.variants];
-                    updatedVariants[index] = {
-                      ...updatedVariants[index],
-                      price: value === '' ? '' : Number(value)
-                    };
-                    return { ...prev, variants: updatedVariants };
-                  });
-                }}
+onChange={(e) => { handleEditVariant(index, 'price', e.target.value) }}
                 className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
@@ -1971,17 +1982,7 @@ const removeEditVariant = (index) => {
                 value={variant.stock || ""}
                 min="0"
                 required
-                onChange={(e) => {
-                  const { value } = e.target;
-                  setEditProductInfo(prev => {
-                    const updatedVariants = [...prev.variants];
-                    updatedVariants[index] = {
-                      ...updatedVariants[index],
-                      stock: value === '' ? '' : Number(value)
-                    };
-                    return { ...prev, variants: updatedVariants };
-                  });
-                }}
+             onChange={(e) => { handleEditVariant(index, 'stock', e.target.value) }}
                 className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
