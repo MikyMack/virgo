@@ -1,6 +1,5 @@
 import api from '../../../utils/axios';
 
-// Admin login function
 export const adminLogin = async ({ email }) => {
   try {
     const response = await api.post('/auth/admin/login', { email });
@@ -12,15 +11,18 @@ export const adminLogin = async ({ email }) => {
   }
 };
 
-// Admin verify OTP function
 export const adminVerifyOtp = async ({ email, otp }) => {
   try {
     const response = await api.post('/auth/admin/verify-otp', { email, otp });
-    
-    return response.data;
+    const { message, token, user } = response.data;
+
+    localStorage.setItem('AdminToken', token);
+    localStorage.setItem('AdminUser', JSON.stringify(user));
+
+    return { message, token, user };
   } catch (error) {
     const message =
-      error.response?.data?.message || 'Server error';
+      error.response?.data?.message || 'Verification failed';
     throw new Error(message);
   }
 };
