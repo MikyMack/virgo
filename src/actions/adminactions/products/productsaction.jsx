@@ -41,13 +41,20 @@ export const updateProduct = async (id, formData) => {
 
 export const deleteProduct = async (id) => {
   try {
-    const config = { headers: { _isAdmin: true } };
-    const response = await api.delete(`/products/delete/${id}`, config);
+    const config = { 
+      headers: { 
+        _isAdmin: true,
+        'Content-Type': 'application/json'
+      } 
+    };
+ const response = await api.delete(`/products/delete/${id}`, config);
     return response.data;
   } catch (error) {
-    handleAdminError(error, 'Failed to delete product');
+    console.error('API Delete Error:', error.response?.data || error.message);
+    throw error;
   }
 };
+
 
 export const toggleProductStatus = async (id) => {
   try {
