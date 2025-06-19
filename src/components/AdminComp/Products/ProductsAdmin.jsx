@@ -45,37 +45,56 @@ export default function ProductsAdmin() {
     isActive: true,
     qna: []
   });
-  const [editProductInfo, setEditProductInfo] = useState({
-    id: null,
-    name: "",
-    description: "",
-    category: null,
-    sku: "",
-    original_price: "",
-    current_price: "",
-    price_with_offer: null,
-    size: "",
-    weight: "",
-    burning_time: "",
-    color: "",
-    fragrance: "",
-    in_the_box: "",
-    stock: null,
-    tags: "",
-    image_url: "",
-    variants: [
-      {
-        variant_options: [],
-        original_price: "",
-        current_price: "",
-        price_with_offer: "",
-        variant_data: {},
-        stock: null,
-        variant_type: "",
-        option_value: "",
-      },
-    ],
-  });
+const [editProductInfo, setEditProductInfo] = useState({
+  id: null,
+  name: "",
+  description: "",
+  category: null,
+  sku: "",
+  original_price: "",
+  current_price: "",
+  price_with_offer: null,
+  size: "",
+  weight: "",
+  burning_time: "",
+  color: "",
+  fragrance: "",
+  in_the_box: "",
+  stock: null,
+  tags: "",
+  image_url: "",
+  // Additional fields to match API response
+  brand: "",
+  basePrice: "",
+  baseStock: "",
+  isActive: true,
+  specifications: "",
+  careAndMaintenance: "",
+  warranty: "",
+  qna: [],
+  images: [], // Main product images
+  existingMainImages: [], // For tracking existing main images
+  mainImages: null, // For new main images upload
+  variants: [
+    {
+      variant_options: [],
+      original_price: "",
+      current_price: "",
+      price_with_offer: "",
+      variant_data: {},
+      stock: null,
+      variant_type: "",
+      option_value: "",
+      // Additional fields to match API structure
+      color: "",
+      size: "",
+      price: "",
+      image: "", // Current image URL
+      existingImage: "", // For tracking existing image
+      newImage: null, // For new image upload
+    },
+  ],
+});
   const [products, setProducts] = useState([]);
   const [variantTypes, setVariantTypes] = useState([]);
   const [variantOptions, setVariantOptions] = useState([]);
@@ -226,39 +245,7 @@ export default function ProductsAdmin() {
 
   const handleAddProduct = () => setShowAddProductPopup(true);
 
-  const handleEditProduct = async (product) => {
-    try {
-      const response = await getProductById(product._id);
-      const productData = response.product || response;
 
-      // Convert variants to the format expected by your form
-      const formattedVariants = productData.variants?.map(variant => ({
-        color: variant.color || '',
-        size: variant.size || '',
-        price: variant.price || '',
-        stock: variant.stock || '',
-        images: variant.images || [],
-        existingImages: variant.images || [] // Store existing images separately
-      })) || [{ color: '', size: '', price: '', stock: '', images: [], existingImages: [] }];
-
-      setEditProductInfo({
-        ...productData,
-        variants: formattedVariants,
-        showVariants: productData.variants?.length > 0,
-        existingMainImages: productData.images || [] // Store existing main images
-      });
-
-      // Set category selections
-      setSelectedPrimary(productData.primaryCategory?._id || '');
-      setSelectedSecondary(productData.secondaryCategory?._id || '');
-      setSelectedTertiary(productData.tertiaryCategory?._id || '');
-
-      setShowEditProductPopup(true);
-    } catch (error) {
-      setError("Failed to fetch product details");
-      console.error(error);
-    }
-  };
 
   const handleEditProductInfoChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -388,7 +375,16 @@ export default function ProductsAdmin() {
     updatedVariants[variantIndex].images = Array.from(files);
     setVariants(updatedVariants);
   };
-
+async function urlToFile(url, filename) {
+  const response = await fetch(url);
+  const data = await response.blob();
+  // Try to infer extension from type
+  let ext = '';
+  if (data.type === 'image/png') ext = '.png';
+  else if (data.type === 'image/jpeg') ext = '.jpg';
+  else if (data.type === 'image/webp') ext = '.webp';
+  return new File([data], filename + ext, { type: data.type });
+}
   const addVariant = () => {
     setVariants([...variants, { color: '', size: '', price: '', stock: '', images: [] }]);
   };
@@ -500,75 +496,228 @@ export default function ProductsAdmin() {
     }
   };
 
-  const handleEditProductSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+const handleEditProduct = async (product) => {
+  try {
+    const response = await getProductById(product._id);
+    const productData = response.product || response;
 
-    try {
-      const formData = new FormData();
-
-      // For updatedVariants, use ONLY the existing image URL (no File objects here)
-      const updatedVariants = editProductInfo.variants?.map((variant) => ({
-        color: variant.color,
-        size: variant.size,
-        price: variant.price,
-        stock: variant.stock,
-        // Use existing image URL or empty string if none (backend should handle validation or use fallback)
-        image: variant.image || variant.existingImages?.[0] || ''
-      })) || [];
-
-      // Append all editable fields including updatedVariants as JSON
-      Object.entries({
-        name: editProductInfo.name,
-        description: editProductInfo.description,
-        brand: editProductInfo.brand,
-        basePrice: editProductInfo.basePrice,
-        baseStock: editProductInfo.baseStock,
-        isActive: editProductInfo.isActive,
-        primaryCategory: selectedPrimary,
-        secondaryCategory: selectedSecondary || '',
-        tertiaryCategory: selectedTertiary || '',
-        fragrance: editProductInfo.fragrance || '',
-        specifications: editProductInfo.specifications || '',
-        careAndMaintenance: editProductInfo.careAndMaintenance || '',
-        warranty: editProductInfo.warranty || '',
-        qna: JSON.stringify(editProductInfo.qna || []),
-        variants: JSON.stringify(updatedVariants), // use updatedVariants here
-        existingMainImages: JSON.stringify(editProductInfo.existingMainImages || [])
-      }).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-
-      // Append new main images
-      if (editProductInfo.mainImages) {
-        Array.from(editProductInfo.mainImages).forEach(file => {
-          formData.append('mainImages', file);
-        });
-      }
-
-      // Append new variant images (for actual upload)
-      editProductInfo.variants?.forEach((variant, index) => {
-        if (variant.images && variant.images.length > 0) {
-          Array.from(variant.images).forEach(file => {
-            formData.append(`variantImages_${index}`, file);
-          });
+    // Clean up any existing object URLs before setting new data
+    if (editProductInfo.variants) {
+      editProductInfo.variants.forEach(variant => {
+        if (variant.imagePreview) {
+          URL.revokeObjectURL(variant.imagePreview);
         }
       });
+    }
 
-      const result = await updateProduct(editProductInfo._id, formData);
-      console.log('Product updated successfully:', result);
-      setShowEditProductPopup(false);
-      fetchProducts();
-    } catch (error) {
-      console.error('Update error:', error);
-      setError(error.message || 'Failed to update product');
-    } finally {
-      setIsSubmitting(false);
+ const formattedVariants = productData.variants?.map(variant => ({
+  color: variant.color || "",
+  size: variant.size || "",
+  price: variant.price || "",
+  stock: variant.stock || "",
+  image: variant.image || "",
+  images: [],
+  existingImage: variant.image || "", // single string for current image
+})) || [{
+  color: "",
+  size: "",
+  price: "",
+  stock: "",
+  image: "",
+  images: [],
+  existingImage: "",
+}];
+
+    setEditProductInfo({
+      id: productData._id,
+      name: productData.name || "",
+      description: productData.description || "",
+      brand: productData.brand || "",
+      basePrice: productData.basePrice || "",
+      baseStock: productData.baseStock || "",
+      isActive: productData.isActive !== undefined ? productData.isActive : true,
+      fragrance: productData.fragrance || "",
+      specifications: productData.specifications || "",
+      careAndMaintenance: productData.careAndMaintenance || "",
+      warranty: productData.warranty || "",
+      qna: productData.qna || [],
+      images: productData.images || [],
+      variants: formattedVariants,
+      // Keep your existing state structure
+      category: productData.primaryCategory?._id || null,
+      sku: "",
+      original_price: productData.basePrice?.toString() || "",
+      current_price: productData.basePrice?.toString() || "",
+      price_with_offer: null,
+      size: "",
+      weight: "",
+      burning_time: "",
+      color: "",
+      in_the_box: "",
+      stock: productData.baseStock,
+      tags: "",
+      image_url: productData.images?.[0] || ""
+    });
+
+    setSelectedPrimary(productData.primaryCategory?._id || '');
+    setSelectedSecondary(productData.secondaryCategory?._id || '');
+    setSelectedTertiary(productData.tertiaryCategory?._id || '');
+    setShowEditProductPopup(true);
+  } catch (error) {
+    console.error("Error fetching product details:", error);
+    setError("Failed to fetch product details: " + (error.message || error.toString()));
+  }
+};
+
+// Enhanced handleEditProductSubmit with comprehensive error handling
+const handleEditProductSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+    const formData = new FormData();
+
+    // Prepare variants data (no image field, just like creation)
+    const updatedVariants = editProductInfo.variants.map(variant => ({
+      color: variant.color || "",
+      size: variant.size || "",
+      price: Number(variant.price),
+      stock: Number(variant.stock),
+    }));
+
+    // Append all form fields
+    const formFields = {
+      name: editProductInfo.name,
+      description: editProductInfo.description,
+      brand: editProductInfo.brand,
+      basePrice: Number(editProductInfo.basePrice),
+      baseStock: Number(editProductInfo.baseStock),
+      isActive: editProductInfo.isActive,
+      primaryCategory: selectedPrimary,
+      secondaryCategory: selectedSecondary || '',
+      tertiaryCategory: selectedTertiary || '',
+      fragrance: editProductInfo.fragrance || '',
+      specifications: editProductInfo.specifications || '',
+      careAndMaintenance: editProductInfo.careAndMaintenance || '',
+      warranty: editProductInfo.warranty || '',
+      qna: JSON.stringify(editProductInfo.qna || []),
+      variants: JSON.stringify(updatedVariants)
+    };
+    Object.entries(formFields).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+      
+    // Append all variant images in order (new or existing)
+    for (let i = 0; i < editProductInfo.variants.length; i++) {
+      const variant = editProductInfo.variants[i];
+      if (variant.images && variant.images.length > 0) {
+        // New image selected
+        formData.append('variantImages', variant.images[0]);
+      } else if (variant.existingImage) {
+        // No new image, use existing image (convert URL to File)
+        const file = await urlToFile(variant.existingImage, `variant_${i}`);
+        formData.append('variantImages', file);
+      }
+    }
+    if (editProductInfo.mainImages && editProductInfo.mainImages.length > 0) {
+      for (const img of editProductInfo.mainImages) {
+        if (img instanceof File) {
+          formData.append('images', img);
+        } else if (typeof img === 'string') {
+          const file = await urlToFile(img, 'main_image');
+          formData.append('images', file);
+        }
+      }
+    }
+    // Log FormData contents for debugging
+    console.log('FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    const result = await updateProduct(editProductInfo.id, formData);
+    console.log('Product updated successfully:', result);
+
+    // Clean up object URLs
+    editProductInfo.variants.forEach(variant => {
+      if (variant.imagePreview) {
+        URL.revokeObjectURL(variant.imagePreview);
+      }
+    });
+
+    setShowEditProductPopup(false);
+    fetchProducts();
+  } catch (error) {
+    console.error('Update error:', error);
+
+    let errorMessage = 'Failed to update product';
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.status) {
+      errorMessage = `Server error: ${error.response.status}`;
+    }
+    setError(errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+const handleEditVariantImageChange = (variantIndex, files) => {
+  const filesArray = Array.from(files);
+  if (filesArray.length === 0) return;
+
+  setEditProductInfo(prev => {
+    const updatedVariants = prev.variants.map((variant, idx) => {
+      if (idx === variantIndex) {
+        const imagePreview = filesArray[0] ? URL.createObjectURL(filesArray[0]) : null;
+        return {
+          ...variant,
+          images: filesArray, // array of new images (usually just one)
+          imagePreview,
+          existingImage: variant.existingImage || variant.image || ""
+        };
+      }
+      return variant;
+    });
+    return { ...prev, variants: updatedVariants };
+  });
+};
+// Add cleanup function for component unmount
+useEffect(() => {
+  return () => {
+    // Clean up object URLs when component unmounts
+    if (editProductInfo.variants) {
+      editProductInfo.variants.forEach(variant => {
+        if (variant.imagePreview) {
+          URL.revokeObjectURL(variant.imagePreview);
+        }
+      });
     }
   };
+}, []);
+
+// Helper function to validate image file
+const validateImageFile = (file) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  
+  if (!allowedTypes.includes(file.type)) {
+    return 'Please select a valid image file (JPEG, PNG, WebP)';
+  }
+  
+  if (file.size > maxSize) {
+    return 'File size must be less than 5MB';
+  }
+  
+  return null; // Valid file
+};
 
 
+
+
+  
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) {
       return;
@@ -609,14 +758,13 @@ export default function ProductsAdmin() {
     }
   };
 
-  const handleEditMainImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length + (editProductInfo.existingMainImages?.length || 0) > 4) {
-      alert('Maximum 4 main images allowed');
-      return;
-    }
-    setEditProductInfo(prev => ({ ...prev, mainImages: files }));
-  };
+const handleEditMainImageUpload = (e) => {
+  const files = Array.from(e.target.files);
+  // Combine existing and new images, but do not exceed 4
+  const existing = editProductInfo.mainImages || [];
+  const combined = [...existing, ...files].slice(0, 4);
+  setEditProductInfo(prev => ({ ...prev, mainImages: combined }));
+};
 
   const handleEditVariantImageUpload = (variantIndex, e) => {
     const files = Array.from(e.target.files);
@@ -634,12 +782,12 @@ export default function ProductsAdmin() {
     });
   };
 
-  const removeEditMainImage = (indexToRemove) => {
-    setEditProductInfo(prev => ({
-      ...prev,
-      existingMainImages: prev.existingMainImages.filter((_, index) => index !== indexToRemove)
-    }));
-  };
+const removeEditMainImage = (indexToRemove) => {
+  setEditProductInfo(prev => ({
+    ...prev,
+    mainImages: prev.mainImages.filter((_, idx) => idx !== indexToRemove)
+  }));
+};
 
   const removeEditVariantImage = (variantIndex, imageIndexToRemove) => {
     setEditProductInfo(prev => {
@@ -1252,6 +1400,22 @@ export default function ProductsAdmin() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Main Product Images (Max 4)
                     </label>
+                    {editProductInfo.mainImages && editProductInfo.mainImages.map((img, idx) => (
+  <div key={idx} className="relative">
+    <img
+      src={img instanceof File ? URL.createObjectURL(img) : img}
+      alt={`Main ${idx}`}
+      className="w-20 h-20 object-cover rounded border"
+    />
+    <button
+      type="button"
+      onClick={() => removeEditMainImage(idx)}
+      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+    >
+      ×
+    </button>
+  </div>
+))}
                     <input
                       type="file"
                       multiple
@@ -1274,7 +1438,7 @@ export default function ProductsAdmin() {
                         placeholder="Question"
                         value={item.question}
                         onChange={(e) => handleQnaChange(index, 'question', e.target.value)}
-                        className="w-full mb-2 px-4 py-2 border border-gray-200 rounded-lg"
+                        className="w-full mb-2 px-4 py-2 border border-gray-400 rounded-lg"
                       />
                       <input
                         type="text"
@@ -1778,94 +1942,261 @@ export default function ProductsAdmin() {
                     Variants
                   </label>
 
-                  {editProductInfo.variants && editProductInfo.variants.length > 0 ? (
-                    editProductInfo.variants.map((variant, index) => (
-                      <div key={index} className="mb-4 p-4 border rounded-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                          {/* Color */}
-                          <input
-                            type="text"
-                            placeholder="Color"
-                            value={variant.color || ""}
-                            onChange={(e) => {
-                              const updatedVariants = [...editProductInfo.variants];
-                              updatedVariants[index].color = e.target.value;
-                              setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                            }}
-                            className="px-3 py-2 border rounded"
-                          />
+{editProductInfo.variants && editProductInfo.variants.length > 0 ? (
+  editProductInfo.variants.map((variant, index) => (
+    <div key={index} className="variant-container border p-4 rounded-lg mb-4">
+      {/* Variant Basic Info */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Color</label>
+          <input
+            type="text"
+            value={variant.color}
+       onChange={(e) => {
+  const updatedVariants = [...editProductInfo.variants];
+  updatedVariants[index] = { ...updatedVariants[index], color: e.target.value };
+  setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+}}
+            className="w-full p-2 border rounded"
+            placeholder="Enter color"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Size</label>
+          <input
+            type="text"
+            value={variant.size}
+        onChange={(e) => {
+  const updatedVariants = [...editProductInfo.variants];
+  updatedVariants[index] = { ...updatedVariants[index], size: e.target.value };
+  setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+}}
+            className="w-full p-2 border rounded"
+            placeholder="Enter size"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Price</label>
+          <input
+            type="number"
+            value={variant.price}
+          onChange={(e) => {
+  const updatedVariants = [...editProductInfo.variants];
+  updatedVariants[index] = { ...updatedVariants[index], price: e.target.value };
+  setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+}}
+            className="w-full p-2 border rounded"
+            placeholder="Enter price"
+            min="0"
+            step="0.01"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Stock</label>
+          <input
+            type="number"
+            value={variant.stock}
+          onChange={(e) => {
+  const updatedVariants = [...editProductInfo.variants];
+  updatedVariants[index] = { ...updatedVariants[index], stock: e.target.value };
+  setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+}}
+            className="w-full p-2 border rounded"
+            placeholder="Enter stock quantity"
+            min="0"
+          />
+        </div>
+      </div>
 
-                          {/* Size */}
-                          <input
-                            type="text"
-                            placeholder="Size"
-                            value={variant.size || ""}
-                            onChange={(e) => {
-                              const updatedVariants = [...editProductInfo.variants];
-                              updatedVariants[index].size = e.target.value;
-                              setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                            }}
-                            className="px-3 py-2 border rounded"
-                          />
+      {/* Variant Image Upload */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium mb-1">Variant Images</label>
+        <input
+    type="file"
+    accept="image/*"
+    key={`variant-image-input-${index}-${variant.image ? 'has-image' : 'no-image'}`} // Force re-render
+    onChange={(e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        handleEditVariantImageChange(index, files);
+        e.target.value = ''; // Clear input for re-selection
+      }
+    }}
+    className="file-input-style"
+  />
+        
+        {/* Image Previews */}
+        <div className="flex gap-2 flex-wrap mt-2">
+          {/* Show existing image if no new images are selected */}
+          {variant.existingImage && (!variant.images || variant.images.length === 0) && (
+            <div className="relative w-20 h-20 border rounded overflow-hidden">
+              <img
+                src={variant.existingImage}
+                alt={`Variant ${index + 1} Current`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/fallback-image.png';
+                  e.target.alt = 'Image not available';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const updatedVariants = [...editProductInfo.variants];
+                  updatedVariants[index] = {
+                    ...updatedVariants[index],
+                    existingImage: null,
+                    images: []
+                  };
+                  setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+                }}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+              >
+                ×
+              </button>
+              <span className="absolute bottom-0 left-0 bg-green-500 text-white text-xs px-1 rounded-tr">
+                CURRENT
+              </span>
+            </div>
+          )}
 
-                          {/* Price */}
-                          <input
-                            type="number"
-                            placeholder="Price *"
-                            value={variant.price || ""}
-                            required
-                            onChange={(e) => {
-                              const updatedVariants = [...editProductInfo.variants];
-                              updatedVariants[index].price = Number(e.target.value);
-                              setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                            }}
-                            className="px-3 py-2 border rounded"
-                          />
+          {/* Show new images if selected */}
+          {variant.images && variant.images.length > 0 && (
+            variant.images.map((img, imgIndex) => (
+              <div key={imgIndex} className="relative w-20 h-20 border rounded overflow-hidden">
+                <img
+                  src={URL.createObjectURL(img)}
+                  alt={`Variant ${index + 1} New ${imgIndex + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updatedVariants = [...editProductInfo.variants];
+                    const newImages = [...updatedVariants[index].images];
+                    
+                    // Revoke the object URL
+                    URL.revokeObjectURL(URL.createObjectURL(newImages[imgIndex]));
+                    
+                    // Remove the image from the array
+                    newImages.splice(imgIndex, 1);
+                    updatedVariants[index] = {
+                      ...updatedVariants[index],
+                      images: newImages
+                    };
+                    setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+                  }}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                >
+                  ×
+                </button>
+                <span className="absolute bottom-0 left-0 bg-blue-500 text-white text-xs px-1 rounded-tr">
+                  NEW
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+        
+        {/* No images message */}
+        {!variant.existingImage && (!variant.images || variant.images.length === 0) && (
+          <p className="text-gray-500 text-sm">No images selected</p>
+        )}
+      </div>
 
-                          {/* Stock */}
-                          <input
-                            type="number"
-                            placeholder="Stock *"
-                            value={variant.stock || ""}
-                            required
-                            onChange={(e) => {
-                              const updatedVariants = [...editProductInfo.variants];
-                              updatedVariants[index].stock = Number(e.target.value);
-                              setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                            }}
-                            className="px-3 py-2 border rounded"
-                          />
+      {/* Remove Variant Button */}
+      <div className="mt-4 pt-4 border-t">
+        <button
+          type="button"
+          onClick={() => {
+            const updatedVariants = editProductInfo.variants.filter((_, i) => i !== index);
+            
+            // Clean up any object URLs for this variant
+            if (variant.images && variant.images.length > 0) {
+              variant.images.forEach(img => {
+                URL.revokeObjectURL(URL.createObjectURL(img));
+              });
+            }
+            
+            setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
+          }}
+          className="text-red-500 text-sm hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors"
+        >
+          Remove Variant {index + 1}
+        </button>
+      </div>
+    </div>
+  ))
+) : (
+  <div className="text-center py-8">
+    <p className="text-gray-500 mb-4">No variants added yet.</p>
+    <button
+      type="button"
+      onClick={() => {
+        setEditProductInfo({
+          ...editProductInfo,
+          variants: [{
+            color: "",
+            size: "",
+            price: "",
+            stock: "",
+            image: "",
+            images: [],
+            variant_options: [],
+            original_price: "",
+            current_price: "",
+            price_with_offer: "",
+            variant_data: {},
+            variant_type: "",
+            option_value: "",
+            existingImage: "",
+            newImage: null,
+          }]
+        });
+      }}
+      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+    >
+      Add First Variant
+    </button>
+  </div>
+)}
 
-                          {/* Image URL */}
-                          <input
-                            type="text"
-                            placeholder="Image URL *"
-                            value={variant.image || ""}
-                            required
-                            onChange={(e) => {
-                              const updatedVariants = [...editProductInfo.variants];
-                              updatedVariants[index].image = e.target.value;
-                              setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                            }}
-                            className="px-3 py-2 border rounded"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updatedVariants = editProductInfo.variants.filter((_, i) => i !== index);
-                            setEditProductInfo({ ...editProductInfo, variants: updatedVariants });
-                          }}
-                          className="mt-2 text-red-500 text-sm"
-                        >
-                          Remove Variant
-                        </button>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No variants added yet.</p>
-                  )}
+{/* Add New Variant Button */}
+{editProductInfo.variants && editProductInfo.variants.length > 0 && (
+  <div className="mt-4">
+    <button
+      type="button"
+      onClick={() => {
+        setEditProductInfo({
+          ...editProductInfo,
+          variants: [
+            ...editProductInfo.variants,
+            {
+              color: "",
+              size: "",
+              price: "",
+              stock: "",
+              image: "",
+              images: [],
+              variant_options: [],
+              original_price: "",
+              current_price: "",
+              price_with_offer: "",
+              variant_data: {},
+              variant_type: "",
+              option_value: "",
+              existingImage: "",
+              newImage: null,
+            }
+          ]
+        });
+      }}
+      className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors"
+    >
+      Add Another Variant
+    </button>
+  </div>
+)}
 
                   <button
                     type="button"
