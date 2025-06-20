@@ -111,7 +111,7 @@ const Navlinks = () => {
                                                 </div>
 
                                             <div className="col-span-3 grid grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-  {secondaryCats
+  {secondary
     .filter(secondaryCat => secondaryCat.isActive) // First filter active secondary categories
     .map((secondaryCat) => {
       const ternaryCats = getTernaryCategories(secondaryCat._id)
@@ -167,46 +167,47 @@ const Navlinks = () => {
                                                     />
                                                 </div>
 
-                                                <div className="space-y-4 max-h-[60vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                                    {secondaryCats.map((secondaryCat) => {
-                                                        const ternaryCats = getTernaryCategories(secondaryCat._id);
-                                                        const sectionId = `section-${secondaryCat._id}`;
-                                                        
-                                                        return (
-                                                            <div key={secondaryCat._id} className="bg-gray-50 bg-opacity-50 p-3 rounded-md border border-gray-100">
-                                                                <div className="flex justify-between items-center">
-                                                                    <Link to={`/category/${secondaryCat._id}`} className="block">
-                                                                        <h1 className="text-lg font-semibold whitespace-nowrap text-gray-800">
-                                                                            {secondaryCat.name}
-                                                                        </h1>
-                                                                    </Link>
-                                                                    {ternaryCats.length > 0 && (
-                                                                        <button
-                                                                            onClick={() => toggleSection(sectionId)}
-                                                                            className="text-gray-600 hover:text-gray-800"
-                                                                        >
-                                                                            {collapsedSections[sectionId] ? <MdExpandMore /> : <MdExpandLess />}
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                                {ternaryCats.length > 0 && !collapsedSections[sectionId] && (
-                                                                    <ul className="mt-2">
-                                                                        {ternaryCats.map((ternaryCat) => (
-                                                                            <li
-                                                                                className="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-150 pl-1"
-                                                                                key={ternaryCat._id}
-                                                                            >
-                                                                                <Link to={`/category/${ternaryCat._id}`} className="block py-1 hover:pl-1 transition-all">
-                                                                                    {ternaryCat.name}
-                                                                                </Link>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
+                                           <div className="space-y-4 max-h-[60vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+  {secondary.filter((secondarycat) => secondarycat.isActive).map((secondaryCat) => {
+    const ternaryCats = getTernaryCategories(secondaryCat._id);
+    
+    const sectionId = `section-${secondaryCat._id}`;
+    
+    return (
+      <div key={secondaryCat._id} className="bg-gray-50 bg-opacity-50 p-3 rounded-md border border-gray-100">
+        <div className="flex justify-between items-center">
+          <Link to={`/category/${secondaryCat._id}`} className="block">
+            <h1 className="text-lg font-semibold whitespace-nowrap text-gray-800">
+              {secondaryCat.name}
+            </h1>
+          </Link>
+          {ternaryCats.length > 0 && (
+            <button
+              onClick={() => toggleSection(sectionId)}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              {collapsedSections[sectionId] ? <MdExpandMore /> : <MdExpandLess />}
+            </button>
+          )}
+        </div>
+        {ternaryCats.length > 0 && !collapsedSections[sectionId] && (
+          <ul className="mt-2">
+            {ternaryCats.filter(ternarycat => ternarycat.isActive).map((ternaryCat) => (
+              <li
+                className="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-150 pl-1"
+                key={ternaryCat._id}
+              >
+                <Link to={`/category/${ternaryCat._id}`} className="block py-1 hover:pl-1 transition-all">
+                  {ternaryCat.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  })}
+</div>
                                             </div>
                                         )}
                                     </div>

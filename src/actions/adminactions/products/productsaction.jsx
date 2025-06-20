@@ -75,6 +75,24 @@ export const getAllProducts = async () => {
   }
 };
 
+
+export const getProductsFiltterd=async ()=>{
+  try{
+const response= await api.get('/products/')
+ return response.data;
+  }
+  catch{
+  handleAdminError(error, 'Failed to fetch products');
+  }
+}
+export const getshopProducts= async ()=>{
+  try{
+
+  }
+  catch{
+
+  }
+}
 export const getProductById = async (id) => {
   try {
     const response = await api.get(`/products/${id}`);
