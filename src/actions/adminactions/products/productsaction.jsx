@@ -76,23 +76,50 @@ export const getAllProducts = async () => {
 };
 
 
-export const getProductsFiltterd=async ()=>{
-  try{
-const response= await api.get('/products/')
- return response.data;
+export const getAllProductsFilterd = async (params = {}) => {
+  try {
+    const response = await api.get('/products/AllProducts', {
+      params: {
+        type: params.type || 'all'
+      }
+    });
+    console.log('API response:', response.data); // <-- This logs the array!
+return Array.isArray(response.data.products) ? response.data.products : [];
+  } catch (error) {
+    handleAdminError(error, 'Failed to fetch products');
+    throw error;
   }
-  catch{
-  handleAdminError(error, 'Failed to fetch products');
-  }
-}
-export const getshopProducts= async ()=>{
-  try{
+};
 
-  }
-  catch{
+export const getshopProducts = async (params = {}) => {
+  try {
+    const response = await api.get('/products/shopProducts', 
+     {
+      params: {
+        type: params.type || 'all',
+        primaryCategory: params.primaryCategory,
+        secondaryCategory: params.secondaryCategory,
+        brand: params.brand,
+        keyword: params.keyword,
+        minPrice: params.minPrice,
+        maxPrice: params.maxPrice,
+        sortBy: params.sortBy || 'latest',
+        page: params.page || 1,
+        limit: params.limit || 12
+      }
+    });
+    console.log('API response:', response.data);
 
+    // Always return the products array in data
+    return {
+      ...response,
+      data: Array.isArray(response.data.products) ? response.data.products : []
+    };
+  } catch (error) {
+    console.error('Error fetching shop products:', error);
+    throw error;
   }
-}
+};
 export const getProductById = async (id) => {
   try {
     const response = await api.get(`/products/${id}`);
