@@ -23,41 +23,43 @@ export const fetchShopProducts = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await getshopProducts(params);
+      
+      // Default values
       let products = [];
-      let pagination;
+      let pagination = {
+        page: params.page || 1,
+        limit: params.limit || 12,
+        total: 0,
+        totalPages: 1
+      };
+      console.log('slice:',response);
+      
 
+      // Handle different response structures
       if (Array.isArray(response.data)) {
+        // If response.data is directly an array
         products = response.data;
-        const total = parseInt(response.headers?.['x-total-count']) || products.length;
-        const limit = params.limit || 12;
-        const page = params.page || 1;
-        pagination = {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        };
-      } else if (Array.isArray(response.data.products)) {
+        pagination.total = parseInt(response.headers?.['x-total-count']) || products.length;
+        pagination.totalPages = Math.ceil(pagination.total / pagination.limit);
+      } else if (response.data && Array.isArray(response.data.products)) {
+        // If response has products array and pagination data
         products = response.data.products;
         if (response.data.pagination) {
-          pagination = { ...response.data.pagination };
-        } else {
-          const total = parseInt(response.headers?.['x-total-count']) || products.length;
-          const limit = params.limit || 12;
-          const page = params.page || 1;
           pagination = {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit)
+            ...pagination, // Keep our defaults
+            ...response.data.pagination // Override with API pagination
           };
+        } else {
+          // Fallback if no pagination object but has products
+          pagination.total = products.length;
+          pagination.totalPages = Math.ceil(products.length / pagination.limit);
         }
       }
 
       return {
-        data: products,
+        products,
         pagination,
-        filters: { ...params }
+        filters: params
       };
     } catch (error) {
       return rejectWithValue(
@@ -80,7 +82,8 @@ const initialState = {
     limit: 12,
     total: 0,
     totalPages: 1
-  }
+  },
+  filters: {}
 };
 
 const productSlice = createSlice({
@@ -92,6 +95,10 @@ const productSlice = createSlice({
       state.shopProducts = [];
       state.error = null;
       state.pagination = { ...initialState.pagination };
+      state.filters = {};
+    },
+    setPage: (state, action) => {
+      state.pagination.page = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -110,16 +117,18 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      
       // Shop Products (with filters)
       .addCase(fetchShopProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-  .addCase(fetchShopProducts.fulfilled, (state, action) => {
-  state.loading = false;
-  state.shopProducts = Array.isArray(action.payload.data) ? action.payload.data : [];
-  state.pagination = action.payload.pagination || { ...initialState.pagination };
-})
+      .addCase(fetchShopProducts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.shopProducts = action.payload.products;
+        state.pagination = action.payload.pagination;
+        state.filters = action.payload.filters;
+      })
       .addCase(fetchShopProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
@@ -127,5 +136,5 @@ const productSlice = createSlice({
   }
 });
 
-export const { clearProducts } = productSlice.actions;
+export const { clearProducts, setPage } = productSlice.actions;
 export default productSlice.reducer;

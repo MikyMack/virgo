@@ -93,12 +93,12 @@ return Array.isArray(response.data.products) ? response.data.products : [];
 
 export const getshopProducts = async (params = {}) => {
   try {
-    const response = await api.get('/products/shopProducts', 
-     {
+    const response = await api.get('/products/shopProducts', {
       params: {
         type: params.type || 'all',
         primaryCategory: params.primaryCategory,
         secondaryCategory: params.secondaryCategory,
+        tertiaryCategory: params.tertiaryCategory, // <--- ADD THIS LINE
         brand: params.brand,
         keyword: params.keyword,
         minPrice: params.minPrice,
@@ -108,13 +108,18 @@ export const getshopProducts = async (params = {}) => {
         limit: params.limit || 12
       }
     });
+    
     console.log('API response:', response.data);
-
-    // Always return the products array in data
+    
+    // Ensure products is an array while preserving other data
     return {
       ...response,
-      data: Array.isArray(response.data.products) ? response.data.products : []
+      data: {
+        ...response.data,
+        products: Array.isArray(response.data.products) ? response.data.products : []
+      }
     };
+    
   } catch (error) {
     console.error('Error fetching shop products:', error);
     throw error;

@@ -6,9 +6,9 @@ import img1 from "../../assets/breadcrumps/shopbread.jpg";
 import { FaHeart, FaOpencart, FaSearch, FaFilter } from "react-icons/fa";
 import { LiaRupeeSignSolid } from "react-icons/lia";
 import { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPrimaryCategories } from "../Redux/slices/CategoriesSlice";
+import { fetchPrimaryCategories, fetchSecondaryCategories, fetchTertiaryCategories } from "../Redux/slices/CategoriesSlice";
 import StarRating from '../Custom bottons/starRating.jsx';
 import { fetchShopProducts } from '../Redux/slices/ProductSlice.js';
 
@@ -16,17 +16,19 @@ const PRODUCTS_PER_PAGE = 12;
 
 const Shop = () => {
     // State management
-    const [likedProducts, setLikedProducts] = useState([]);
+      const [likedProducts, setLikedProducts] = useState([]);
     const [selectedImage, setSelectedImage] = useState({});
     const [showFilters, setShowFilters] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchTimeout, setSearchTimeout] = useState(null);
     const [availableBrands, setAvailableBrands] = useState([]);
     const [page, setPage] = useState(1);
+    const [isFilteringByCategory, setIsFilteringByCategory] = useState(false);
 
     // Redux setup for categories and products
     const dispatch = useDispatch();
-    const { primary } = useSelector((state) => state.categories);
+    const navigate = useNavigate();
+    const { primary, secondary, tertiary } = useSelector((state) => state.categories);
     const { shopProducts, pagination, loading, error } = useSelector(state => state.products);
 
     // Filters state
@@ -34,11 +36,57 @@ const Shop = () => {
         type: 'all',
         keyword: '',
         primaryCategory: '',
+        secondaryCategory: '',
+        tertiaryCategory: '',
         brand: '',
         minPrice: '',
         maxPrice: '',
         sortBy: 'latest',
     });
+
+    // Get query params from URL
+    const location = useLocation();
+
+    // Handle URL parameters - SINGLE useEffect
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        
+        console.log('URL Search Params:', {
+            primaryCategory: params.get('primaryCategory'),
+            secondaryCategory: params.get('secondaryCategory'),
+            tertiaryCategory: params.get('tertiaryCategory')
+        });
+
+        const hasCategory = params.get('primaryCategory') || 
+                           params.get('secondaryCategory') || 
+                           params.get('tertiaryCategory');
+        
+        if (hasCategory) {
+            setIsFilteringByCategory(true);
+            const newFilters = {
+                type: 'all',
+                keyword: '',
+                primaryCategory: params.get('primaryCategory') || '',
+                secondaryCategory: params.get('secondaryCategory') || '',
+                tertiaryCategory: params.get('tertiaryCategory') || '',
+                brand: '',
+                minPrice: '',
+                maxPrice: '',
+                sortBy: 'latest'
+            };
+            
+            console.log('Setting new filters from URL:', newFilters);
+            setFilters(newFilters);
+            setPage(1);
+        }
+    }, [location.search]);
+
+    // Update when products are loaded
+    useEffect(() => {
+        if (!loading) {
+            setIsFilteringByCategory(false);
+        }
+    }, [loading]);
 
     const typeOptions = [
         { value: 'all', label: 'All Products' },
@@ -57,9 +105,9 @@ const Shop = () => {
     // Fetch categories on component mount
     useEffect(() => {
         dispatch(fetchPrimaryCategories());
+        dispatch(fetchSecondaryCategories());
+        dispatch(fetchTertiaryCategories());
     }, [dispatch]);
-    console.log(pagination);
-    
 
     // Fetch products for the current page and filters
     useEffect(() => {
@@ -67,9 +115,12 @@ const Shop = () => {
         Object.keys(params).forEach(key => {
             if (params[key] === '' || params[key] === null) delete params[key];
         });
+        
+        console.log('Fetching products with params:', params);
+        console.log('Current filters state:', filters);
+        
         dispatch(fetchShopProducts(params));
-        // eslint-disable-next-line
-    }, [filters, page]);
+    }, [filters, page, dispatch]);
 
     // Extract unique brands from current products for the filter dropdown
     useEffect(() => {
@@ -106,6 +157,8 @@ const Shop = () => {
 
     // When a filter changes, reset page to 1 and update filters
     const handleFilterChange = (filterName, value) => {
+        console.log(`Filter change: ${filterName} = ${value}`);
+        
         setFilters(prev => ({
             ...prev,
             [filterName]: value
@@ -119,23 +172,30 @@ const Shop = () => {
     };
 
     const clearFilters = () => {
-        setFilters({
+        const clearedFilters = {
             type: 'all',
             keyword: '',
             primaryCategory: '',
+            secondaryCategory: '', // Add this
+            tertiaryCategory: '',   // Add this
             brand: '',
             minPrice: '',
             maxPrice: '',
             sortBy: 'latest',
-        });
+        };
+        
+        console.log('Clearing filters to:', clearedFilters);
+        setFilters(clearedFilters);
         setSearchTerm('');
-        setPage(1); // Reset to first page
+        setPage(1);
+        
+        // Clear URL parameters by navigating to clean shop page
+        navigate('/shop', { replace: true });
     };
 
     const handlePageChange = (newPage) => {
         setPage(newPage);
     };
-
     return (
         <section className="overflow-hidden">
             {/* Hero Section */}
@@ -231,12 +291,16 @@ const Shop = () => {
                     {showFilters && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {/* Category Filter */}
+                                {/* Primary Category Filter */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Main Category</label>
                                     <select 
                                         value={filters.primaryCategory}
-                                        onChange={(e) => handleFilterChange('primaryCategory', e.target.value)}
+                                        onChange={(e) => {
+                                            handleFilterChange('primaryCategory', e.target.value);
+                                            handleFilterChange('secondaryCategory', '');
+                                            handleFilterChange('tertiaryCategory', '');
+                                        }}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">All Categories</option>
@@ -247,7 +311,45 @@ const Shop = () => {
                                         ))}
                                     </select>
                                 </div>
-
+                                {/* Secondary Category Filter */}
+                                {/* <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Sub Category</label>
+                                    <select
+                                        value={filters.secondaryCategory}
+                                        onChange={(e) => {
+                                            handleFilterChange('secondaryCategory', e.target.value);
+                                            handleFilterChange('tertiaryCategory', '');
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">All Secondary</option>
+                                        {secondary.filter(
+                                            sec => sec.isActive && (!filters.primaryCategory || sec.primaryCategory?._id === filters.primaryCategory)
+                                        ).map(sec => (
+                                            <option key={sec._id || sec.id} value={sec._id || sec.id}>
+                                                {sec.name || sec.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div> */}
+                                {/* Tertiary Category Filter */}
+                                {/* <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Child Category</label>
+                                    <select
+                                        value={filters.tertiaryCategory}
+                                        onChange={(e) => handleFilterChange('tertiaryCategory', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">All Tertiary</option>
+                                        {tertiary.filter(
+                                            ter => ter.isActive && (!filters.secondaryCategory || ter.secondaryCategory?._id === filters.secondaryCategory)
+                                        ).map(ter => (
+                                            <option key={ter._id || ter.id} value={ter._id || ter.id}>
+                                                {ter.name || ter.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div> */}
                                 {/* Brand Filter */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
@@ -293,6 +395,8 @@ const Shop = () => {
                 </div>
             </section>
 
+
+
             {/* Products Section */}
             <section className="xl:container mx-auto my-10 px-4 font-abc">
                 {loading && (
@@ -325,7 +429,8 @@ const Shop = () => {
                                 {shopProducts.filter(product=>product.isActive)?.map((product) => (
                                     <div key={product.id || product._id} className="product-card mb-4 group hover:shadow-md hover:scale-105 transition-transform bg-white rounded-xl p-4 shadow-lg h-[400px]">
                                         <div className="relative">
-                                            <Link to={`/ProductDetails/${product.id || product._id}`} state={{ selectedImage: selectedImage[product.id || product._id] || product.images[0]}}>
+                                            <Link to={`/ProductDetails/${product.id || product._id}`} 
+  state={{ product: product }}>
                                                 <Swiper
                                                     className="swiper-container"
                                                     spaceBetween={10}
@@ -405,31 +510,102 @@ const Shop = () => {
                             )}
 
                             {/* Pagination */}
-                            {pagination.totalPages > 1 && (
-                                <div className="flex justify-center mt-8">
-                                    <button
-                                        onClick={() => handlePageChange(page - 1)}
-                                        disabled={page === 1}
-                                    >
-                                        Previous
-                                    </button>
-                                    {Array.from({ length: pagination.totalPages }, (_, idx) => (
-                                        <button
-                                            key={idx + 1}
-                                            onClick={() => handlePageChange(idx + 1)}
-                                            className={page === idx + 1 ? 'active' : ''}
-                                        >
-                                            {idx + 1}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => handlePageChange(page + 1)}
-                                        disabled={page === pagination.totalPages}
-                                    >
-                                        Next
-                                    </button>
-                                </div>
-                            )}
+                          {/* Pagination */}
+{pagination.totalPages > 1 && (
+  <div className="flex justify-center mt-8 space-x-2">
+    <button
+      onClick={() => handlePageChange(page - 1)}
+      disabled={page === 1}
+      className={`px-4 py-2 rounded-md ${
+        page === 1 
+          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
+    >
+      Previous
+    </button>
+    
+    {/* Show limited page numbers with ellipsis */}
+    {(() => {
+      const pages = [];
+      const maxVisiblePages = 5;
+      let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+      let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
+      
+      // Adjust if we're at the end
+      if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+
+      // First page
+      if (startPage > 1) {
+        pages.push(
+          <button
+            key={1}
+            onClick={() => handlePageChange(1)}
+            className={`px-4 py-2 rounded-md ${
+              page === 1 ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            1
+          </button>
+        );
+        if (startPage > 2) {
+          pages.push(<span key="start-ellipsis" className="px-4 py-2">...</span>);
+        }
+      }
+
+      // Middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`px-4 py-2 rounded-md ${
+              page === i ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+
+      // Last page
+      if (endPage < pagination.totalPages) {
+        if (endPage < pagination.totalPages - 1) {
+          pages.push(<span key="end-ellipsis" className="px-4 py-2">...</span>);
+        }
+        pages.push(
+          <button
+            key={pagination.totalPages}
+            onClick={() => handlePageChange(pagination.totalPages)}
+            className={`px-4 py-2 rounded-md ${
+              page === pagination.totalPages 
+                ? 'bg-blue-700 text-white' 
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {pagination.totalPages}
+          </button>
+        );
+      }
+
+      return pages;
+    })()}
+
+    <button
+      onClick={() => handlePageChange(page + 1)}
+      disabled={page === pagination.totalPages}
+      className={`px-4 py-2 rounded-md ${
+        page === pagination.totalPages 
+          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
+    >
+      Next
+    </button>
+  </div>
+)}
                         </div>
                     </div>
                 )}

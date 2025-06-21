@@ -42,10 +42,10 @@ const Navlinks = () => {
         return tertiary.filter(ter => ter.secondaryCategory?._id === secondaryId);
     };
 
-    // Close dropdown when clicking outside
+    // Close dropdown when clicking outside (only for desktop)
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (!isMobile && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setHeading("");
                 setSubHeading("");
             }
@@ -56,7 +56,7 @@ const Navlinks = () => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("touchstart", handleClickOutside);
         };
-    }, []);
+    }, [isMobile]);
 
     // Clear search when dropdown closes
     useEffect(() => {
@@ -72,13 +72,50 @@ const Navlinks = () => {
         }));
     };
 
-    const toggleMobileDropdown = (primaryCatName) => {
-        setHeading(heading === primaryCatName ? "" : primaryCatName);
-        setSubHeading("");
+    const buildCategoryLink = (categoryType, categoryId) => {
+        const params = new URLSearchParams();
+        params.set(categoryType, categoryId);
+        return `/shop?${params.toString()}`;
     };
 
-    if (loading) return <div className="loading-spinner">Loading...</div>;
-    if (error) return <div className="error-message">Error: {error}</div>;
+    const toggleMobileDropdown = (primaryCatName, event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setHeading(heading === primaryCatName ? "" : primaryCatName);
+        setSubHeading("");
+        setCollapsedSections({}); // Reset collapsed sections when switching primary categories
+    };
+
+    const closeMobileSidebar = () => {
+        setHeading("");
+        setSubHeading("");
+        setCollapsedSections({});
+        // If you have a parent component that controls sidebar visibility, 
+        // you might need to call a prop function here like: onCloseSidebar?.();
+    };
+
+    const handlePrimaryClick = (primaryCat, event) => {
+        const secondaryCats = getSecondaryCategories(primaryCat._id);
+        const hasSubmenu = secondaryCats.length > 0;
+
+        if (isMobile && hasSubmenu) {
+            // On mobile, if there's a submenu, toggle dropdown instead of navigating
+            toggleMobileDropdown(primaryCat.name, event);
+        } else if (!isMobile) {
+            // Desktop behavior
+            if (hasSubmenu) {
+                event.preventDefault();
+                setHeading(heading !== primaryCat.name ? primaryCat.name : "");
+                setSubHeading("");
+                setIsSimpleView(false);
+            }
+            // If no submenu, let the link navigate normally
+        }
+        // On mobile without submenu, let the link navigate normally
+    };
+
+    if (loading) return <div className="flex justify-center items-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>;
+    if (error) return <div className="text-red-500 text-center py-4">Error: {error}</div>;
 
     return (
         <>
@@ -87,95 +124,127 @@ const Navlinks = () => {
                 const hasSubmenu = secondaryCats.length > 0;
 
                 return (
-                    <div key={primaryCat._id} ref={dropdownRef} className="relative">
+                    <div key={primaryCat._id} className="relative">
                         <div className="px-3 text-left cursor-pointer group">
-                            <h1
-                                className="flex justify-between items-center md:pr-0 pr-5 py-1 hover:text-gray-600 font-bold md:font-normal text-2xl md:text-xl"
-                                onClick={() => {
-                                    if (isMobile) {
-                                        toggleMobileDropdown(primaryCat.name);
-                                    } else {
-                                        heading !== primaryCat.name ? setHeading(primaryCat.name) : setHeading("");
-                                        setSubHeading("");
-                                        setIsSimpleView(false);
-                                    }
-                                }}
+                            <div
+                                className="flex justify-between items-center py-3 md:py-1 hover:text-gray-600 transition-colors duration-200 border-b border-gray-100 md:border-none"
+                                onClick={(event) => handlePrimaryClick(primaryCat, event)}
                             >
-                                {primaryCat.name}
+                                <Link 
+                                    to={buildCategoryLink('primaryCategory', primaryCat._id)}
+                                    className="flex-grow"
+                                    onClick={(e) => {
+                                        if (isMobile && hasSubmenu) {
+                                            e.preventDefault();
+                                        } else if (isMobile && !hasSubmenu) {
+                                            closeMobileSidebar();
+                                        }
+                                    }}
+                                >
+                                    <h1 className="font-bold md:font-normal text-lg md:text-xl text-gray-800 hover:text-gray-600 transition-colors">
+                                        {primaryCat.name}
+                                    </h1>
+                                </Link>
                                 {hasSubmenu && (
-                                    <span className="text-xl md:ml-2 inline">
-                                        {heading === primaryCat.name ? <MdArrowDropUp /> : <MdOutlineArrowDropDown />}
-                                    </span>
+                                    <button 
+                                        className="text-xl md:ml-2 p-2 md:p-0 hover:bg-gray-100 md:hover:bg-transparent rounded-full md:rounded-none transition-all duration-200"
+                                        onClick={(event) => {
+                                            if (isMobile) {
+                                                toggleMobileDropdown(primaryCat.name, event);
+                                            }
+                                        }}
+                                    >
+                                        {heading === primaryCat.name ? 
+                                            <MdArrowDropUp className="text-blue-600" /> : 
+                                            <MdOutlineArrowDropDown className="text-gray-600" />
+                                        }
+                                    </button>
                                 )}
-                            </h1>
+                            </div>
 
                             {hasSubmenu && (
                                 <div 
-                                    className={`${isMobile ? 'block' : 'hidden'} ${heading === primaryCat.name ? 'md:block' : 'group-hover:md:block'}`}
+                                    className={`${
+                                        isMobile 
+                                            ? `transition-all duration-300 ease-in-out overflow-hidden ${
+                                                heading === primaryCat.name 
+                                                    ? 'max-h-screen opacity-100' 
+                                                    : 'max-h-0 opacity-0'
+                                              }`
+                                            : `absolute top-full left-0 z-50 transition-all duration-200 ${
+                                                heading === primaryCat.name 
+                                                    ? 'block opacity-100 transform translate-y-0' 
+                                                    : 'hidden opacity-0 transform -translate-y-2 group-hover:block group-hover:opacity-100 group-hover:translate-y-0'
+                                              }`
+                                    }`}
+                                    style={{
+                                        maxHeight: isMobile && heading === primaryCat.name ? '70vh' : undefined
+                                    }}
                                 >
                                     {isMobile ? (
-                                        <div className="md:hidden pl-4 py-2 bg-gray-50 rounded-md mt-1 space-y-2">
-                                            {secondaryCats
-                                                .filter(secondaryCat => secondaryCat.isActive)
-                                                .map((secondaryCat) => {
-                                                    const ternaryCats = getTernaryCategories(secondaryCat._id);
-                                                    const sectionId = `section-${secondaryCat._id}`;
-                                                    
-                                                    return (
-                                                        <div key={secondaryCat._id} className="mb-2">
-                                                            <div className="flex justify-between items-center">
-                                                                <Link 
-                                                                    to={`/category/${secondaryCat._id}`} 
-                                                                    className="block font-medium text-gray-800 flex-grow"
-                                                                    onClick={(e) => {
-                                                                        if (ternaryCats.length > 0) {
-                                                                            e.preventDefault();
-                                                                            toggleSection(sectionId);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {secondaryCat.name}
-                                                                </Link>
-                                                                {ternaryCats.length > 0 && (
-                                                                    <button 
-                                                                        className="text-gray-600 p-1"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            toggleSection(sectionId);
-                                                                        }}
+                                        // Mobile dropdown
+                                        <div className="bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-xl mx-2 mb-3 shadow-lg border border-gray-200 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                            <div className="p-4 space-y-3">
+                                                {secondaryCats
+                                                    .filter(secondaryCat => secondaryCat.isActive)
+                                                    .map((secondaryCat) => {
+                                                        const ternaryCats = getTernaryCategories(secondaryCat._id)
+                                                            .filter(ternaryCat => ternaryCat.isActive);
+                                                        const sectionId = `mobile-section-${secondaryCat._id}`;
+                                                        
+                                                        return (
+                                                            <div key={secondaryCat._id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
+                                                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+                                                                    <Link 
+                                                                        to={buildCategoryLink('secondaryCategory', secondaryCat._id)}  
+                                                                        className="font-semibold text-gray-800 hover:text-blue-600 transition-colors flex-grow text-base"
+                                                                        onClick={closeMobileSidebar}
                                                                     >
-                                                                        {collapsedSections[sectionId] ? <MdExpandMore /> : <MdExpandLess />}
-                                                                    </button>
+                                                                        {secondaryCat.name}
+                                                                    </Link>
+                                                                    {ternaryCats.length > 0 && (
+                                                                        <button 
+                                                                            className="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-white/50 transition-all duration-200 ml-2"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleSection(sectionId);
+                                                                            }}
+                                                                        >
+                                                                            {collapsedSections[sectionId] ? 
+                                                                                <MdExpandMore className="text-xl" /> : 
+                                                                                <MdExpandLess className="text-xl" />
+                                                                            }
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                                
+                                                                {ternaryCats.length > 0 && (
+                                                                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                                                                        collapsedSections[sectionId] ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'
+                                                                    }`}>
+                                                                        <ul className="p-4 space-y-2 bg-gray-50/50">
+                                                                            {ternaryCats.map((ternaryCat) => (
+                                                                                <li key={ternaryCat._id}>
+                                                                                    <Link 
+                                                                                        to={buildCategoryLink('tertiaryCategory', ternaryCat._id)} 
+                                                                                        className="block text-sm text-gray-600 hover:text-blue-600 hover:bg-white py-3 px-4 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200 hover:shadow-sm"
+                                                                                        onClick={closeMobileSidebar}
+                                                                                    >
+                                                                                        • {ternaryCat.name}
+                                                                                    </Link>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
                                                                 )}
                                                             </div>
-                                                            
-                                                            {ternaryCats.length > 0 && !collapsedSections[sectionId] && (
-                                                                <ul className="pl-4 mt-1 space-y-1">
-                                                                    {ternaryCats
-                                                                        .filter(ternaryCat => ternaryCat.isActive)
-                                                                        .map((ternaryCat) => (
-                                                                            <li
-                                                                                className="text-sm text-gray-600 hover:text-gray-800 py-1"
-                                                                                key={ternaryCat._id}
-                                                                            >
-                                                                                <Link 
-                                                                                    to={`/category/${ternaryCat._id}`} 
-                                                                                    className="block"
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                >
-                                                                                    {ternaryCat.name}
-                                                                                </Link>
-                                                                            </li>
-                                                                        ))
-                                                                    }
-                                                                </ul>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })
-                                            }
+                                                        );
+                                                    })
+                                                }
+                                            </div>
                                         </div>
                                     ) : (
+                                        // Desktop dropdown (existing code with minor improvements)
                                         <div className="absolute top-full left-0 hidden md:block z-50">
                                             <div className="py-3">
                                                 <div className="w-4 h-4 left-3 absolute mt-1 bg-white bg-opacity-90 rotate-45 border-l border-t border-gray-200"></div>
@@ -202,7 +271,7 @@ const Navlinks = () => {
 
                                                                 return (
                                                                     <div key={secondaryCat._id} className="p-2 rounded-md hover:bg-gray-100 hover:bg-opacity-50 transition-colors duration-200">
-                                                                        <Link to={`/category/${secondaryCat._id}`} className="block">
+                                                                        <Link to={buildCategoryLink('secondaryCategory', secondaryCat._id)} className="block">
                                                                             <h1 className="text-lg font-semibold whitespace-nowrap mb-2 text-gray-800">
                                                                                 {secondaryCat.name}
                                                                             </h1>
@@ -215,7 +284,7 @@ const Navlinks = () => {
                                                                                         key={ternaryCat._id}
                                                                                     >
                                                                                         <Link 
-                                                                                            to={`/category/${ternaryCat._id}`} 
+                                                                                            to={buildCategoryLink('tertiaryCategory', ternaryCat._id)} 
                                                                                             className="block py-1 hover:pl-1 transition-all"
                                                                                         >
                                                                                             {ternaryCat.name}
@@ -260,7 +329,7 @@ const Navlinks = () => {
                                                                 return (
                                                                     <div key={secondaryCat._id} className="bg-gray-50 bg-opacity-50 p-3 rounded-md border border-gray-100">
                                                                         <div className="flex justify-between items-center">
-                                                                            <Link to={`/category/${secondaryCat._id}`} className="block">
+                                                                            <Link to={buildCategoryLink('secondaryCategory', secondaryCat._id)} className="block">
                                                                                 <h1 className="text-lg font-semibold whitespace-nowrap text-gray-800">
                                                                                     {secondaryCat.name}
                                                                                 </h1>
@@ -283,7 +352,7 @@ const Navlinks = () => {
                                                                                             className="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-150 pl-1"
                                                                                             key={ternaryCat._id}
                                                                                         >
-                                                                                            <Link to={`/category/${ternaryCat._id}`} className="block py-1 hover:pl-1 transition-all">
+                                                                                            <Link to={buildCategoryLink('tertiaryCategory', ternaryCat._id)} className="block py-1 hover:pl-1 transition-all">
                                                                                                 {ternaryCat.name}
                                                                                             </Link>
                                                                                         </li>
