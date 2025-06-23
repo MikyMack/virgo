@@ -11,7 +11,7 @@ import "swiper/css/autoplay";
 import "swiper/css";
 import StarRating from "../Custom bottons/starRating";
 import { fetchShopProducts } from '../Redux/slices/ProductSlice';
-
+  import { addToCart } from '../Redux/slices/CartSlice';
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -51,27 +51,23 @@ export default function ProductDetails() {
     setSelectedImage(image);
   };
 
-  const handleAddToCart = (product) => {
-    const productToAdd = {
-      ...product,
-      quantity: quantity,
-      selectedVariant: selectedVariant
-    };
-    
-    setCartItems((prevCart) => {
-      const existingProduct = prevCart.find((item) => 
-        item.id === product.id && 
-        (!selectedVariant || item.selectedVariant?.color === selectedVariant?.color && item.selectedVariant?.size === selectedVariant?.size)
-      );
-      if (existingProduct) {
-        alert(`${product.name} is already in your cart!`);
-        return prevCart;
-      } else {
-        alert(`${product.name} added to cart successfully!`);
-        return [...prevCart, productToAdd];
-      }
-    });
-  };
+
+
+const handleAddToCart = (product) => {
+  // Extract only color and size from the selected variant
+  let variant = undefined;
+  if (selectedVariant && typeof selectedVariant === 'object') {
+    variant = {};
+    if (selectedVariant.color) variant.color = selectedVariant.color;
+    if (selectedVariant.size) variant.size = selectedVariant.size;
+  }
+
+  dispatch(addToCart({
+    productId: product._id || product.id,
+    variant,
+    quantity
+  }));
+};
 
   const handleMoveToWishlist = (product) => {
     if (wishlistItems.find((item) => item.id === product.id)) {
@@ -207,8 +203,8 @@ export default function ProductDetails() {
                   >
                     <div className="flex items-center justify-center w-full  gap-2  h-[50px] mb-2">
                 
-                    <div className="flex justify-center w-full items-center">
-     <img src={variant.image} alt="" />
+                    <div className="flex justify-center w-full  items-center">
+     <img className="h-[50px]" src={variant.image} alt="" />
                     </div>
                        
 

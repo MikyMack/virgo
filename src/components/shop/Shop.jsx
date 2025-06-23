@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchPrimaryCategories, fetchSecondaryCategories, fetchTertiaryCategories } from "../Redux/slices/CategoriesSlice";
 import StarRating from '../Custom bottons/starRating.jsx';
 import { fetchShopProducts } from '../Redux/slices/ProductSlice.js';
-
+import { addToCart } from '../Redux/slices/CartSlice';
 const PRODUCTS_PER_PAGE = 12;
 
 const Shop = () => {
@@ -24,13 +24,15 @@ const Shop = () => {
     const [availableBrands, setAvailableBrands] = useState([]);
     const [page, setPage] = useState(1);
     const [isFilteringByCategory, setIsFilteringByCategory] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
     // Redux setup for categories and products
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { primary, secondary, tertiary } = useSelector((state) => state.categories);
     const { shopProducts, pagination, loading, error } = useSelector(state => state.products);
-
+const { items, status,  total } = useSelector(state => state.cart);
     // Filters state
     const [filters, setFilters] = useState({
         type: 'all',
@@ -43,6 +45,7 @@ const Shop = () => {
         maxPrice: '',
         sortBy: 'latest',
     });
+    const [filtersInitialized, setFiltersInitialized] = useState(false);
 
     // Get query params from URL
     const location = useLocation();
@@ -51,12 +54,6 @@ const Shop = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         
-        console.log('URL Search Params:', {
-            primaryCategory: params.get('primaryCategory'),
-            secondaryCategory: params.get('secondaryCategory'),
-            tertiaryCategory: params.get('tertiaryCategory')
-        });
-
         const hasCategory = params.get('primaryCategory') || 
                            params.get('secondaryCategory') || 
                            params.get('tertiaryCategory');
@@ -74,10 +71,11 @@ const Shop = () => {
                 maxPrice: '',
                 sortBy: 'latest'
             };
-            
-            console.log('Setting new filters from URL:', newFilters);
             setFilters(newFilters);
             setPage(1);
+            setFiltersInitialized(true);
+        } else {
+            setFiltersInitialized(true);
         }
     }, [location.search]);
 
@@ -101,7 +99,54 @@ const Shop = () => {
         { value: 'priceHighLow', label: 'Price: High to Low' },
         { value: 'nameAZ', label: 'Name: A to Z' }
     ];
+const handleAddToCart = (product) => {
+  // Check if user is logged in
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Please log in to add items to your cart.');
+    return;
+  }
 
+  // Basic validation
+  if (!product || !product._id || (!('basePrice' in product) && !('price' in product))) {
+    alert('Invalid product data: missing price information');
+    return;
+  }
+
+  // Determine the price to use (variant price or base price)
+  const priceToUse = (selectedVariant?.price ?? product.basePrice ?? product.price);
+
+  // Prepare cart item data
+  const cartItem = {
+    productId: product._id,
+    variant: selectedVariant ? { ...selectedVariant } : null, // Pass full variant info if selected
+    quantity: quantity || 1, // Default to 1 if quantity not set
+    productData: {
+      _id: product._id,
+      name: product.name,
+      price: priceToUse,
+      basePrice: product.basePrice ?? product.price,
+      image: selectedVariant?.image || product.images?.[0],
+      brand: product.brand,
+      // Include any other relevant product info
+    }
+  };
+
+  console.log('Adding to cart:', cartItem); // For debugging
+
+  // Dispatch the action
+  dispatch(addToCart(cartItem))
+    .unwrap()
+    .then(() => {
+      alert(`${product.name} added to cart successfully!`);
+      // Reset quantity after adding to cart
+      setQuantity(1);
+    })
+    .catch((error) => {
+      alert(`Failed to add to cart: ${error.message || 'Unknown error'}`);
+      console.error('Add to cart error:', error);
+    });
+};
     // Fetch categories on component mount
     useEffect(() => {
         dispatch(fetchPrimaryCategories());
@@ -111,16 +156,13 @@ const Shop = () => {
 
     // Fetch products for the current page and filters
     useEffect(() => {
+        if (!filtersInitialized) return;
         const params = { ...filters, page, limit: PRODUCTS_PER_PAGE };
         Object.keys(params).forEach(key => {
             if (params[key] === '' || params[key] === null) delete params[key];
         });
-        
-        console.log('Fetching products with params:', params);
-        console.log('Current filters state:', filters);
-        
         dispatch(fetchShopProducts(params));
-    }, [filters, page, dispatch]);
+    }, [filters, page, dispatch, filtersInitialized]);
 
     // Extract unique brands from current products for the filter dropdown
     useEffect(() => {
@@ -139,9 +181,7 @@ const Shop = () => {
         };
     }, [searchTimeout]);
 
-    const handleAddToCart = (product) => {
-        alert(`${product.name || product.title} added to cart!`);
-    };
+  
 
     const handleLikeProduct = (id) => {
         if (likedProducts.includes(id)) {

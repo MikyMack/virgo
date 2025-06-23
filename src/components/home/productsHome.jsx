@@ -85,9 +85,14 @@ console.log('produc:',productsToDisplay);
         }));
     };
 
-    const handleImageClick = (productId) => {
-        if (productId) {
-            navigate(`/ProductDetails/${productId}`);
+    const handleImageClick = (productId, product) => {
+        if (productId && product) {
+            navigate(`/ProductDetails/${productId}`, {
+                state: {
+                    product: product,
+                    selectedImage: selectedImages[productId] || product.images?.[0] || '/placeholder-product.jpg'
+                }
+            });
         }
     };
 
@@ -190,7 +195,7 @@ console.log('produc:',productsToDisplay);
                                             src={selectedImages[product._id] || product.images?.[0] || '/placeholder-product.jpg'}
                                             alt={product.name || 'Product'}
                                             className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
-                                            onClick={() => handleImageClick(product._id)}
+                                            onClick={() => handleImageClick(product._id, product)}
                                             onError={(e) => {
                                                 e.target.src = '/placeholder-product.jpg';
                                             }}
@@ -206,7 +211,7 @@ console.log('produc:',productsToDisplay);
                                         </button>
                                     </div>
                                     <div className="p-4">
-                                        <p className="text-gray-500 text-sm mb-1">{getCategoryName(product.category)}</p>
+                                       
                                         <h3 className="font-medium text-lg mb-2 line-clamp-2">
                                             <Link to={`/ProductDetails/${product._id}`} className="hover:text-blue-600 transition-colors duration-200">
                                                 {product.name || 'Unnamed Product'}
