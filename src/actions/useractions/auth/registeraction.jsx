@@ -1,5 +1,4 @@
 import api from '../../../utils/axios';
-// import { API_URLS } from "../../../constants/config";
 
 // Send OTP
 export const sendOtp = async ({ email }) => {
