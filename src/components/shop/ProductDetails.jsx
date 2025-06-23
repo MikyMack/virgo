@@ -110,10 +110,11 @@ export default function ProductDetails() {
   const displayStock = selectedVariant?.stock || product.baseStock;
 
   return (
-    <div className="xl:container mx-auto p-6 font-serif bg-[#f8f1e9] text-gray-800">
+    <>
+        <div className="xl:container mx-auto p-6 font-serif bg-[#f8f1e9] text-gray-800">
       {/* Breadcrumbs */}
       <div className="text-sm breadcrumbs mb-6">
-        <ul>
+        <ul className="flex gap-3">
           <li><Link to="/" className="text-[#8c5523] hover:underline">Home</Link></li> 
           <li><Link to="/shop" className="text-[#8c5523] hover:underline">Shop</Link></li> 
           <li className="text-gray-600">{product.name}</li>
@@ -160,16 +161,13 @@ export default function ProductDetails() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <StarRating rating={4.5} /> {/* Assuming a rating component */}
-            <span className="text-gray-600 text-sm">(24 reviews)</span>
-          </div>
+     
 
           <div className="flex items-center gap-4">
             <p className="text-2xl font-medium text-[#8c5523] flex items-center">
               <LiaRupeeSignSolid /> {displayPrice}
               {product.basePrice !== displayPrice && (
-                <span className="text-gray-500 text-lg line-through ml-2">
+                <span className="text-gray-500 text-lg line-through flex justify-center items-center ml-2">
                   <LiaRupeeSignSolid />{product.basePrice}
                 </span>
               )}
@@ -193,7 +191,7 @@ export default function ProductDetails() {
           {product.variants && product.variants.length > 0 && (
             <div className="mt-6">
               <h2 className="text-lg font-semibold text-[#4a2e1b] mb-3">Available Variants</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 w-[300px] md:grid-cols-3 gap-3">
                 {product.variants.map((variant, index) => (
                   <div
                     key={index}
@@ -207,13 +205,25 @@ export default function ProductDetails() {
                       if (variant.image) setSelectedImage(variant.image);
                     }}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className="w-5 h-5 rounded-full border border-gray-300"
-                        style={{ backgroundColor: variant.color }}
-                      />
-                      <span className="font-medium">{variant.color}</span>
+                    <div className="flex items-center justify-center w-full  gap-2  h-[50px] mb-2">
+                
+                    <div className="flex justify-center w-full items-center">
+     <img src={variant.image} alt="" />
                     </div>
+                       
+
+                 
+                
+
+                     
+               
+                 
+                      
+               
+                  
+
+                      </div>
+                     
                     <div className="flex justify-between text-sm">
                       <span>Size:</span>
                       <span className="font-medium">{variant.size}</span>
@@ -224,14 +234,7 @@ export default function ProductDetails() {
                         <LiaRupeeSignSolid />{variant.price}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Stock:</span>
-                      <span className={`font-medium ${
-                        variant.stock > 5 ? "text-green-600" : variant.stock > 0 ? "text-yellow-600" : "text-red-600"
-                      }`}>
-                        {variant.stock > 0 ? `${variant.stock} available` : "Out of stock"}
-                      </span>
-                    </div>
+                
                   </div>
                 ))}
               </div>
@@ -313,115 +316,150 @@ export default function ProductDetails() {
           </div>
 
           {/* Collapsible Sections */}
-          <div className="mt-6 space-y-4">
-            {/* Specifications */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-300"
-                onClick={() => toggleSection("specifications")}
-              >
-                <div className="flex items-center text-lg font-semibold text-[#4a2e1b]">
-                  {renderSectionIcon("specifications")}
-                  Specifications
-                </div>
-                {activeSection === "specifications" ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
-              </button>
-              {activeSection === "specifications" && (
-                <div className="p-4 bg-white">
-                  {product.specifications ? (
-                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: product.specifications }} />
-                  ) : (
-                    <p className="text-gray-500">No specifications provided.</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Care and Maintenance */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-300"
-                onClick={() => toggleSection("care")}
-              >
-                <div className="flex items-center text-lg font-semibold text-[#4a2e1b]">
-                  {renderSectionIcon("care")}
-                  Care and Maintenance
-                </div>
-                {activeSection === "care" ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
-              </button>
-              {activeSection === "care" && (
-                <div className="p-4 bg-white">
-                  {product.careAndMaintenance ? (
-                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: product.careAndMaintenance }} />
-                  ) : (
-                    <p className="text-gray-500">No care instructions provided.</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Warranty */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-300"
-                onClick={() => toggleSection("warranty")}
-              >
-                <div className="flex items-center text-lg font-semibold text-[#4a2e1b]">
-                  {renderSectionIcon("warranty")}
-                  Warranty
-                </div>
-                {activeSection === "warranty" ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
-              </button>
-              {activeSection === "warranty" && (
-                <div className="p-4 bg-white">
-                  {product.warranty ? (
-                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: product.warranty }} />
-                  ) : (
-                    <p className="text-gray-500">No warranty information provided.</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Q&A */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-300"
-                onClick={() => toggleSection("qa")}
-              >
-                <div className="flex items-center text-lg font-semibold text-[#4a2e1b]">
-                  {renderSectionIcon("qa")}
-                  Questions & Answers
-                </div>
-                {activeSection === "qa" ? <IoMdArrowDropup /> : <IoMdArrowDropdown />}
-              </button>
-              {activeSection === "qa" && (
-                <div className="p-4 bg-white space-y-4">
-                  {product.qna && product.qna.length > 0 ? (
-                    product.qna.map((item, index) => (
-                      <div key={index} className="border-b border-gray-200 pb-4 last:border-0">
-                        <h3 className="font-medium text-[#4a2e1b]">Q: {item.question}</h3>
-                        <p className="text-gray-700 mt-1 pl-4">A: {item.answer}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 mb-2">No questions yet.</p>
-                      <Link 
-                        to="/contact" 
-                        className="text-[#8c5523] hover:underline font-medium"
-                      >
-                        Ask a question about this product
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+      
         </div>
       </div>
+<div className="mt-8 space-y-6">
+  {/* Specifications */}
+  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <button
+      className="w-full flex justify-between items-center p-5 bg-white hover:bg-gray-50 transition-colors duration-200"
+      onClick={() => toggleSection("specifications")}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-[#f8f1e9] rounded-lg text-[#8c5523]">
+          <FaInfoCircle className="text-lg" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">Product Specifications</h3>
+      </div>
+      {activeSection === "specifications" ? (
+        <IoMdArrowDropup className="text-gray-500 text-xl" />
+      ) : (
+        <IoMdArrowDropdown className="text-gray-500 text-xl" />
+      )}
+    </button>
+    {activeSection === "specifications" && (
+      <div className="p-5 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        {product.specifications ? (
+          <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.specifications }} />
+        ) : (
+          <p className="text-gray-500 italic">No specifications provided for this product.</p>
+        )}
+      </div>
+    )}
+  </div>
 
+  {/* Care and Maintenance */}
+  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <button
+      className="w-full flex justify-between items-center p-5 bg-white hover:bg-gray-50 transition-colors duration-200"
+      onClick={() => toggleSection("care")}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-[#f8f1e9] rounded-lg text-[#8c5523]">
+          <FaShieldAlt className="text-lg" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">Care Instructions</h3>
+      </div>
+      {activeSection === "care" ? (
+        <IoMdArrowDropup className="text-gray-500 text-xl" />
+      ) : (
+        <IoMdArrowDropdown className="text-gray-500 text-xl" />
+      )}
+    </button>
+    {activeSection === "care" && (
+      <div className="p-5 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        {product.careAndMaintenance ? (
+          <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.careAndMaintenance }} />
+        ) : (
+          <p className="text-gray-500 italic">No care instructions provided for this product.</p>
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* Warranty */}
+  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <button
+      className="w-full flex justify-between items-center p-5 bg-white hover:bg-gray-50 transition-colors duration-200"
+      onClick={() => toggleSection("warranty")}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-[#f8f1e9] rounded-lg text-[#8c5523]">
+          <FaShieldAlt className="text-lg" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">Warranty Information</h3>
+      </div>
+      {activeSection === "warranty" ? (
+        <IoMdArrowDropup className="text-gray-500 text-xl" />
+      ) : (
+        <IoMdArrowDropdown className="text-gray-500 text-xl" />
+      )}
+    </button>
+    {activeSection === "warranty" && (
+      <div className="p-5 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        {product.warranty ? (
+          <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: product.warranty }} />
+        ) : (
+          <p className="text-gray-500 italic">No warranty information provided for this product.</p>
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* Q&A */}
+  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <button
+      className="w-full flex justify-between items-center p-5 bg-white hover:bg-gray-50 transition-colors duration-200"
+      onClick={() => toggleSection("qa")}
+    >
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-[#f8f1e9] rounded-lg text-[#8c5523]">
+          <FaQuestionCircle className="text-lg" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800">Customer Questions</h3>
+      </div>
+      {activeSection === "qa" ? (
+        <IoMdArrowDropup className="text-gray-500 text-xl" />
+      ) : (
+        <IoMdArrowDropdown className="text-gray-500 text-xl" />
+      )}
+    </button>
+    {activeSection === "qa" && (
+      <div className="p-5 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        {product.qna && product.qna.length > 0 ? (
+          <div className="space-y-4">
+            {product.qna.map((item, index) => (
+              <div key={index} className="pb-4 last:pb-0">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-2 h-2 bg-[#8c5523] rounded-full"></div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">Q: {item.question}</h4>
+                    <p className="mt-1 text-gray-700 pl-5 border-l-2 border-[#f8f1e9]">
+                      A: {item.answer}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-gray-500 mb-3">No questions have been asked yet.</p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#8c5523] hover:bg-[#6b3e1a] transition-colors"
+            >
+              Ask a Question
+            </Link>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</div>
       {/* Related Products Section */}
       {shopProducts && shopProducts.length > 1 && (
         <div className="mt-16">
@@ -485,5 +523,7 @@ export default function ProductDetails() {
         </div>
       )}
     </div>
+    </>
+
   );
 }
