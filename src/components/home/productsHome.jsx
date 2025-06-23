@@ -1,178 +1,262 @@
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/autoplay';
-
-import { LiaRupeeSignSolid } from "react-icons/lia";
-import { FaOpencart } from "react-icons/fa";
-import "./productsHome.css";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { products } from "../../constants/constants.js"
-import { FaHeart } from "react-icons/fa";
+import { LiaRupeeSignSolid } from "react-icons/lia";
+import { FaOpencart, FaHeart } from "react-icons/fa";
 import StarRating from '../Custom bottons/starRating.jsx';
-import { transform } from 'framer-motion';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchAllProducts } from '../Redux/slices/ProductSlice.js';
+import "./productsHome.css";
 
 const ProductsHome = () => {
-    const [activeTab, setActiveTab] = useState('all');
+     const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
     const [wishlistItems, setWishlistItems] = useState([]);
     const [selectedImages, setSelectedImages] = useState({});
 
-    const handleAddToCart = (product, quantity) => {
-        setCartItems((prevCart) => {
-            const existingProduct = prevCart.find(item => item.id === product.id);
-            if (existingProduct) {
-                alert(`${product.title} is already Added to the Cart Successfully!..`);
-                return prevCart;
-            } else {
-                const updatedCart = [...prevCart, { ...product, quantity }];
-                localStorage.setItem("cart", JSON.stringify(updatedCart));
-                alert(`${product.title} Added to the Cart Successfully!..`);
-                return updatedCart;
+    const dispatch = useDispatch();
+    const { 
+        allProducts = [], 
+        loading, 
+        error, 
+        productType 
+    } = useSelector((state) => state.products);
+
+    const tabToApiTypeMap = {
+        'all': 'all',
+        'featured': 'featured',
+        'bestseller': 'best-seller',
+        'on-sale': 'on-sale'
+    };
+
+    useEffect(() => {
+        // Initialize from localStorage
+        const initializeFromStorage = () => {
+            try {
+                const savedCart = localStorage.getItem("cart");
+                const savedWishlist = localStorage.getItem("wishlist");
+                if (savedCart) setCartItems(JSON.parse(savedCart));
+                if (savedWishlist) setWishlistItems(JSON.parse(savedWishlist));
+            } catch (e) {
+                console.error("Storage parse error:", e);
             }
-        });
+        };
+        initializeFromStorage();
+    }, []);
+
+    useEffect(() => {
+        // Fetch products when tab changes
+        const apiType = tabToApiTypeMap[activeTab];
+        dispatch(fetchAllProducts({ type: apiType }));
+    }, [dispatch, activeTab]);
+    const productsToDisplay = Array.isArray(allProducts) ? allProducts : [];
+console.log('produc:',productsToDisplay);
+
+    const handleAddToCart = (product) => {
+        if (!product?._id) {
+            console.error("Invalid product:", product);
+            return;
+        }
+
+        const existingProduct = cartItems.find(item => item._id === product._id);
+        
+        if (existingProduct) {
+            alert(`${product.name || 'Product'} is already in your cart!`);
+            return;
+        }
+
+        const productToAdd = {
+            ...product,
+            quantity: 1,
+            price: product.variants?.[0]?.price || product.price || 0,
+            image: product.images?.[0] || '/placeholder-product.jpg'
+        };
+
+        const updatedCart = [...cartItems, productToAdd];
+        setCartItems(updatedCart);
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+        alert(`${product.name || 'Product'} added to cart!`);
     };
 
     const handleImageOptionClick = (productId, image) => {
-        setSelectedImages(prevImages => ({ ...prevImages, [productId]: image }));
+        setSelectedImages(prev => ({ 
+            ...prev, 
+            [productId]: image 
+        }));
     };
 
     const handleImageClick = (productId) => {
-        navigate(`/ProductDetails/${productId}`);
-    };
-
-    const handleMoveToWishlist = (product) => {
-        if (wishlistItems.find(item => item.id === product.id)) {
-            alert(`${product.title} is already Added to the Wishlist Successfully!..`);
-        } else {
-            const updatedWishlist = [...wishlistItems, product];
-            setWishlistItems(updatedWishlist);
-            localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
-            alert(`${product.title} Added to the Wishlist Successfully!..`);
+        if (productId) {
+            navigate(`/ProductDetails/${productId}`);
         }
     };
 
-    const filteredProducts = activeTab === 'all' ? products.slice(0, 10) : products.filter(product => product.type === activeTab).slice(0, 10);
+    const handleMoveToWishlist = (product) => {
+        if (!product?._id) {
+            console.error("Invalid product:", product);
+            return;
+        }
+
+        if (wishlistItems.some(item => item._id === product._id)) {
+            alert(`${product.name || 'Product'} is already in your wishlist!`);
+            return;
+        }
+
+        const productToAdd = {
+            ...product,
+            price: product.variants?.[0]?.price || product.price || 0,
+            image: product.images?.[0] || '/placeholder-product.jpg'
+        };
+
+        const updatedWishlist = [...wishlistItems, productToAdd];
+        setWishlistItems(updatedWishlist);
+        localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
+        alert(`${product.name || 'Product'} added to wishlist!`);
+    };
+
+    const getCategoryName = (category) => {
+        if (!category) return 'Uncategorized';
+        if (typeof category === 'object' && category.name) return category.name;
+        return category;
+    };
+
+    const formatTabName = (tab) => {
+        switch(tab) {
+            case 'bestseller': return 'Best Seller';
+            case 'on-sale': return 'On Sale';
+            default: return tab.charAt(0).toUpperCase() + tab.slice(1);
+        }
+    };
+
+    const getProductPrice = (product) => {
+        const price = product.variants?.[0]?.price || product.price;
+        return price ? price.toFixed(2) : '0.00';
+    };
 
     return (
         <section className="xl:container mx-auto my-10 px-4 font-abc">
-            <h2 className="text-center font-bold text-2xl md:text-[40px] text-uppercase mb-10 text-gray-700">
+            <h2 className="text-center font-bold text-2xl md:text-[40px] mb-10 text-gray-700">
                 Best Selling Products
             </h2>
 
-            <ul
-                className="mb-10 text-uppercase justify-center items-center text-center text-xl lg:text-2xl space-x-9"
-                id="collections-tab"
-                role="tablist"
-            >
-                <li className="nav-item" role="presentation">
-                    <a
-                        className={`cursor-pointer ${activeTab === 'all' ? 'active-tab' : ''}`}
-                        onClick={() => setActiveTab('all')}
-                    >
-                        All
-                    </a>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <a
-                        className={`nav-link cursor-pointer ${activeTab === 'featured' ? 'active-tab' : ''}`}
-                        onClick={() => setActiveTab('featured')}
-                    >
-                        Featured
-                    </a>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <a
-                        className={`nav-link cursor-pointer ${activeTab === 'bestseller' ? 'active-tab' : ''}`}
-                        onClick={() => setActiveTab('bestseller')}
-                    >
-                        Best Seller
-                    </a>
-                </li>
-                <li className="nav-item" role="presentation">
-                    <a
-                        className={`nav-link cursor-pointer ${activeTab === 'sales' ? 'active-tab' : ''}`}
-                        onClick={() => setActiveTab('sales')}
-                    >
-                        Sales
-                    </a>
-                </li>
+            <ul className="mb-10 flex justify-center items-center text-center text-xl lg:text-2xl space-x-9">
+                {['all', 'featured', 'bestseller', 'on-sale'].map((tab) => (
+                    <li key={tab} className="nav-item">
+                        <button
+                            className={`cursor-pointer transition-colors duration-200 ${
+                                activeTab === tab 
+                                    ? 'font-bold text-blue-600 border-b-2 border-blue-600' 
+                                    : 'text-gray-600 hover:text-blue-500'
+                            }`}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {formatTabName(tab)}
+                        </button>
+                    </li>
+                ))}
             </ul>
 
-            <div className="pt-2">
-                <div className="fade show active" role="tabpanel">
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                        {filteredProducts?.map((product) => (
-                            <div key={product.id} className="product-card mb-4 group hover:shadow-lg rounded-2xl shadow-xl">
-                                <div className="relative">
-                                    <img
-                                        loading="lazy"
-                                        src={selectedImages[product.id] || product.images[0]}
-                                        alt={product.title}
-                                        className="w-full h-auto object-cover cursor-pointer"
-                                        onClick={() => handleImageClick(product.id)}
-                                    />
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAddToCart(product, 1);
-                                        }}
-                                        className="absolute flex items-center justify-center bottom-0 left-1/2 w-full transform -translate-x-1/2 translate-y-full group-hover:translate-y-0 border-0 text-uppercase font-medium bg-[#b8ccc6] text-gray-900 py-2 xs:px-2 sm:px-2 md:px-4 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:text-white">
-                                        Add To Cart
-                                        <span className="text-gray-900 pl-3">
-                                            <FaOpencart />
-                                        </span>
-                                    </button>
-                                </div>
-                                <div  className="transform-none transition-none hover:translate-y-0 relative p-2 sm:p-4 flex flex-col justify-between">
-                                    <div className='prdct-details'  >
-                                        <p className="text-gray-500 text-sm sm:text-base">{product.category}</p>
-                                        <h6 className="text-base sm:text-lg font-medium">
-                                            <Link to="product1_simple.html">{product.title}</Link>
-                                        </h6>
-                                        <div className="flex items-center prdct-details justify-between text-lg sm:text-xl font-medium">
-                                            <div className='flex items-center prdct-details'>
-                                                <span>
-                                                    <LiaRupeeSignSolid />
-                                                        </span>
-                                                {product.price}
-                                            </div>
-                                           <div className="flex space-x-2 items-center prdct-details">
-                                                {product.images.map((image, index) => (
-                                                    <img
-                                                        key={index}
-                                                        src={image}
-                                                        alt={product.title}
-                                                        className="w-6 h-6 rounded-full border border-gray-300 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleImageOptionClick(product.id, image);
-                                                        }}
-                                                    />
-                                                ))}
-                                        </div>
-                                    </div>
-                                      </div>
-                                    <div className="flex items-center justify-between prdct-details mt-1 px-2">
-                                        <button
-                                            title="Add To Wishlist"
-                                            className="bg-transparent border-0"
-                                            onClick={() => handleMoveToWishlist(product)}
+            {loading ? (
+                <div className="text-center py-10">Loading products...</div>
+            ) : error ? (
+                <div className="text-center py-10">
+                    <div className="text-red-500 mb-4">Error: {error}</div>
+                    <button 
+                        onClick={() => dispatch(fetchAllProducts({ type: tabToApiTypeMap[activeTab] }))}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Retry
+                    </button>
+                </div>
+            ) : productsToDisplay.length === 0 ? (
+                <div className="text-center py-10">
+                    No products found. 
+                    <button 
+                        onClick={() => dispatch(fetchAllProducts({ type: tabToApiTypeMap[activeTab] }))}
+                        className="ml-2 text-blue-500 hover:underline"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            ) : (
+                <div className="pt-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {productsToDisplay.map((product) => (
+                            product?._id ? (
+                                <div key={product._id} className="product-card group hover:shadow-lg rounded-xl overflow-hidden transition-shadow duration-300">
+                                    <div className="relative aspect-square overflow-hidden">
+                                        <img
+                                            loading="lazy"
+                                            src={selectedImages[product._id] || product.images?.[0] || '/placeholder-product.jpg'}
+                                            alt={product.name || 'Product'}
+                                            className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                                            onClick={() => handleImageClick(product._id)}
+                                            onError={(e) => {
+                                                e.target.src = '/placeholder-product.jpg';
+                                            }}
+                                        />
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddToCart(product);
+                                            }}
+                                            className="absolute bottom-0 left-0 right-0 bg-[#b8ccc6] text-gray-900 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
                                         >
-                                            <FaHeart className='text-xl text-red-400 hover:text-red-700' />
+                                            Add To Cart <FaOpencart className="ml-2" />
                                         </button>
-                                        <div className='prdct-details'>
-                                            <StarRating rating={4} />
+                                    </div>
+                                    <div className="p-4">
+                                        <p className="text-gray-500 text-sm mb-1">{getCategoryName(product.category)}</p>
+                                        <h3 className="font-medium text-lg mb-2 line-clamp-2">
+                                            <Link to={`/ProductDetails/${product._id}`} className="hover:text-blue-600 transition-colors duration-200">
+                                                {product.name || 'Unnamed Product'}
+                                            </Link>
+                                        </h3>
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center text-lg font-semibold">
+                                                <LiaRupeeSignSolid />
+                                                <span>{getProductPrice(product)}</span>
+                                            </div>
+                                            {product.images?.length > 1 && (
+                                                <div className="flex space-x-1">
+                                                    {product.images.slice(0, 3).map((image, index) => (
+                                                        <img
+                                                            key={index}
+                                                            src={image}
+                                                            alt={`Variant ${index}`}
+                                                            className="w-6 h-6 rounded-full border border-gray-200 cursor-pointer object-cover"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleImageOptionClick(product._id, image);
+                                                            }}
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleMoveToWishlist(product);
+                                                }}
+                                                className="text-red-400 hover:text-red-600 transition-colors duration-200"
+                                                aria-label="Add to wishlist"
+                                            >
+                                                <FaHeart />
+                                            </button>
+                                            <StarRating rating={product.rating || 0} />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            ) : null
                         ))}
                     </div>
                 </div>
-            </div>
+            )}
         </section>
     );
 };

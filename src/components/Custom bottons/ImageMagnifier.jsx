@@ -17,7 +17,7 @@ export default function ImageMagnifier({ imageUrl }) {
 
     return (
         <div className='img-magnifier-container' onMouseEnter={() => setShowMagnifier(true)} onMouseLeave={() => setShowMagnifier(false)} onMouseMove={handleMouseHover}>
-            <img className=' w-full h-auto object-contain' src={imageUrl} alt='' />
+            <img className=' w-full h-auto  object-contain' src={imageUrl} alt='' />
             {showMagnifier &&
                 <div style={{ position: "absolute", left: `${cursorPosition.x - 100}px`, top: `${cursorPosition.y - 100}px`, pointerEvents: "none" }}>
                     <div className='magnifier-image' style={{ backgroundImage: `url(${imageUrl})`, backgroundPosition: `${position.x}% ${position.y}%`, }}>
