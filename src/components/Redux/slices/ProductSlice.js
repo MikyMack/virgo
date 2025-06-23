@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getAllProductsFilterd, getshopProducts } from '../../../actions/adminactions/products/productsaction';
 
-// Thunk for all products (home page, tabs)
+
 export const fetchAllProducts = createAsyncThunk(
   'products/fetchAllProducts',
   async (params = { type: 'all' }, { rejectWithValue }) => {
@@ -17,14 +17,14 @@ export const fetchAllProducts = createAsyncThunk(
   }
 );
 
-// Thunk for shop products (with filters, pagination, etc)
+
 export const fetchShopProducts = createAsyncThunk(
   'products/fetchShopProducts',
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await getshopProducts(params);
       
-      // Default values
+   
       let products = [];
       let pagination = {
         page: params.page || 1,
@@ -35,22 +35,22 @@ export const fetchShopProducts = createAsyncThunk(
       console.log('slice:',response);
       
 
-      // Handle different response structures
+   
       if (Array.isArray(response.data)) {
-        // If response.data is directly an array
+     
         products = response.data;
         pagination.total = parseInt(response.headers?.['x-total-count']) || products.length;
         pagination.totalPages = Math.ceil(pagination.total / pagination.limit);
       } else if (response.data && Array.isArray(response.data.products)) {
-        // If response has products array and pagination data
+     
         products = response.data.products;
         if (response.data.pagination) {
           pagination = {
-            ...pagination, // Keep our defaults
-            ...response.data.pagination // Override with API pagination
+            ...pagination, 
+            ...response.data.pagination 
           };
         } else {
-          // Fallback if no pagination object but has products
+       
           pagination.total = products.length;
           pagination.totalPages = Math.ceil(products.length / pagination.limit);
         }
@@ -103,7 +103,7 @@ const productSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // All Products (home/tabs)
+    
       .addCase(fetchAllProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -118,7 +118,7 @@ const productSlice = createSlice({
         state.error = action.payload;
       })
       
-      // Shop Products (with filters)
+
       .addCase(fetchShopProducts.pending, (state) => {
         state.loading = true;
         state.error = null;

@@ -22,27 +22,27 @@ const Navlinks = () => {
         dispatch(fetchSecondaryCategories());
         dispatch(fetchTertiaryCategories());
         
-        // Check if mobile
+
         const handleResize = () => {
-            setIsMobile(window.innerWidth < 768); // Tailwind's md breakpoint
+            setIsMobile(window.innerWidth < 768);
         };
         
-        handleResize(); // Initial check
+        handleResize(); 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [dispatch]);
 
-    // Get secondary categories for a primary category
+
     const getSecondaryCategories = (primaryId) => {
         return secondary.filter(sec => sec.primaryCategory?._id === primaryId);
     };
 
-    // Get ternary categories for a secondary category
+ 
     const getTernaryCategories = (secondaryId) => {
         return tertiary.filter(ter => ter.secondaryCategory?._id === secondaryId);
     };
 
-    // Close dropdown when clicking outside (only for desktop)
+   
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!isMobile && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -58,7 +58,7 @@ const Navlinks = () => {
         };
     }, [isMobile]);
 
-    // Clear search when dropdown closes
+
     useEffect(() => {
         if (!heading) {
             setDropdownSearch("");
@@ -83,15 +83,14 @@ const Navlinks = () => {
         event.stopPropagation();
         setHeading(heading === primaryCatName ? "" : primaryCatName);
         setSubHeading("");
-        setCollapsedSections({}); // Reset collapsed sections when switching primary categories
+        setCollapsedSections({}); 
     };
 
     const closeMobileSidebar = () => {
         setHeading("");
         setSubHeading("");
         setCollapsedSections({});
-        // If you have a parent component that controls sidebar visibility, 
-        // you might need to call a prop function here like: onCloseSidebar?.();
+       
     };
 
     const handlePrimaryClick = (primaryCat, event) => {
@@ -99,7 +98,7 @@ const Navlinks = () => {
         const hasSubmenu = secondaryCats.length > 0;
 
         if (isMobile && hasSubmenu) {
-            // On mobile, if there's a submenu, toggle dropdown instead of navigating
+           
             toggleMobileDropdown(primaryCat.name, event);
         } else if (!isMobile) {
             // Desktop behavior
@@ -109,9 +108,9 @@ const Navlinks = () => {
                 setSubHeading("");
                 setIsSimpleView(false);
             }
-            // If no submenu, let the link navigate normally
+       
         }
-        // On mobile without submenu, let the link navigate normally
+        
     };
 
     if (loading) return <div className="flex justify-center items-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div></div>;
@@ -244,7 +243,7 @@ const Navlinks = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        // Desktop dropdown (existing code with minor improvements)
+                                        // Desktop dropdown 
                                         <div className="absolute top-full left-0 hidden md:block z-50">
                                             <div className="py-3">
                                                 <div className="w-4 h-4 left-3 absolute mt-1 bg-white bg-opacity-90 rotate-45 border-l border-t border-gray-200"></div>
