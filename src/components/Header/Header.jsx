@@ -10,7 +10,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import profile from "../../assets/icons/profile.jpg";
-
+import { useSelector } from 'react-redux';
 export default function Header() {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function Header() {
   const inputRef = useRef(null);
   const headerRef = useRef(null);
   const dropdownRef = useRef(null);
-
+const { totalItems } = useSelector(state => state.cart);
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     setUser(loggedInUser);
@@ -265,11 +265,11 @@ export default function Header() {
                         <CiShoppingCart className="w-5 h-5" />
                         <span>Cart</span>
                       </div>
-                      {cartCount > 0 && (
-                        <span className="bg-blue-gray-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                          {cartCount}
-                        </span>
-                      )}
+                   {totalItems > 0 && (
+  <span className="bg-blue-gray-500 text-white text-xs rounded-full px-1.5 py-0.5">
+    {totalItems}
+  </span>
+)}
                     </Link>
                   </div>
                 )}

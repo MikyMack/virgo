@@ -12,6 +12,8 @@ import { fetchPrimaryCategories, fetchSecondaryCategories, fetchTertiaryCategori
 import StarRating from '../Custom bottons/starRating.jsx';
 import { fetchShopProducts } from '../Redux/slices/ProductSlice.js';
 import { addToCart } from '../Redux/slices/CartSlice';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const PRODUCTS_PER_PAGE = 12;
 
 const Shop = () => {
@@ -100,61 +102,51 @@ const { items, status,  total } = useSelector(state => state.cart);
         { value: 'nameAZ', label: 'Name: A to Z' }
     ];
 const handleAddToCart = (product) => {
-  // Check if user is logged in
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Please log in to add items to your cart.');
-    return;
-  }
-
-  // Basic validation
   if (!product || !product._id || (!('basePrice' in product) && !('price' in product))) {
-    alert('Invalid product data: missing price information');
+    toast.error('Invalid product data: missing price information');
     return;
   }
 
-  // Determine the price to use (variant price or base price)
   const priceToUse = (selectedVariant?.price ?? product.basePrice ?? product.price);
 
-  // Prepare cart item data
   const cartItem = {
     productId: product._id,
-    variant: selectedVariant ? { ...selectedVariant } : null, // Pass full variant info if selected
-    quantity: quantity || 1, // Default to 1 if quantity not set
-    productData: {
+    variant: selectedVariant ? { ...selectedVariant } : null,
+    quantity: quantity || 1,
+    productData: { 
       _id: product._id,
       name: product.name,
       price: priceToUse,
       basePrice: product.basePrice ?? product.price,
       image: selectedVariant?.image || product.images?.[0],
       brand: product.brand,
-      // Include any other relevant product info
+      images: product.images 
     }
   };
 
-  console.log('Adding to cart:', cartItem); // For debugging
-
-  // Dispatch the action
   dispatch(addToCart(cartItem))
     .unwrap()
-    .then(() => {
-      alert(`${product.name} added to cart successfully!`);
-      // Reset quantity after adding to cart
+    .then((response) => {
+      if (response?.isGuest) {
+        toast.success(`${product.name} added to guest cart! Login to sync across devices`);
+      } else {
+        toast.success(`${product.name} added to cart successfully!`);
+      }
       setQuantity(1);
     })
     .catch((error) => {
-      alert(`Failed to add to cart: ${error.message || 'Unknown error'}`);
+      toast.error(`Failed to add to cart: ${error.message || 'Unknown error'}`);
       console.error('Add to cart error:', error);
     });
 };
-    // Fetch categories on component mount
+
     useEffect(() => {
         dispatch(fetchPrimaryCategories());
         dispatch(fetchSecondaryCategories());
         dispatch(fetchTertiaryCategories());
     }, [dispatch]);
 
-    // Fetch products for the current page and filters
+
     useEffect(() => {
         if (!filtersInitialized) return;
         const params = { ...filters, page, limit: PRODUCTS_PER_PAGE };
@@ -164,7 +156,7 @@ const handleAddToCart = (product) => {
         dispatch(fetchShopProducts(params));
     }, [filters, page, dispatch, filtersInitialized]);
 
-    // Extract unique brands from current products for the filter dropdown
+   
     useEffect(() => {
         const allBrands = [...new Set(
             (shopProducts || [])
@@ -174,7 +166,7 @@ const handleAddToCart = (product) => {
         setAvailableBrands(allBrands);
     }, [shopProducts]);
 
-    // Clean up search timeout
+
     useEffect(() => {
         return () => {
             if (searchTimeout) clearTimeout(searchTimeout);
@@ -195,7 +187,7 @@ const handleAddToCart = (product) => {
         setSelectedImage((prevImages) => ({ ...prevImages, [productId]: image }));
     };
 
-    // When a filter changes, reset page to 1 and update filters
+ 
     const handleFilterChange = (filterName, value) => {
         console.log(`Filter change: ${filterName} = ${value}`);
         
@@ -203,12 +195,12 @@ const handleAddToCart = (product) => {
             ...prev,
             [filterName]: value
         }));
-        setPage(1); // Reset to first page when filter changes
+        setPage(1); 
     };
 
     const applyFilters = () => {
         setShowFilters(false);
-        setPage(1); // Reset to first page when filters are applied
+        setPage(1); 
     };
 
     const clearFilters = () => {
@@ -216,8 +208,8 @@ const handleAddToCart = (product) => {
             type: 'all',
             keyword: '',
             primaryCategory: '',
-            secondaryCategory: '', // Add this
-            tertiaryCategory: '',   // Add this
+            secondaryCategory: '',
+            tertiaryCategory: '',   
             brand: '',
             minPrice: '',
             maxPrice: '',
@@ -229,7 +221,7 @@ const handleAddToCart = (product) => {
         setSearchTerm('');
         setPage(1);
         
-        // Clear URL parameters by navigating to clean shop page
+      
         navigate('/shop', { replace: true });
     };
 
@@ -572,7 +564,7 @@ const handleAddToCart = (product) => {
       let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
       let endPage = Math.min(pagination.totalPages, startPage + maxVisiblePages - 1);
       
-      // Adjust if we're at the end
+
       if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
       }

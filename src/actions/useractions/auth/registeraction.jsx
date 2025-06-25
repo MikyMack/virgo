@@ -1,18 +1,18 @@
 import api from '../../../utils/axios';
 // import { API_URLS } from "../../../constants/config";
 
-// Send OTP
+
 export const sendOtp = async ({ email }) => {
     const response = await api.post('/auth/login-or-register', { email });
     return response.data;
   };
   
-  // Verify OTP
+
   export const verifyotp = async ({ email, otp }) => {
     const response = await api.post('/auth/verify-otp', { email, otp });
     const { token, user, message } = response.data;
   
-    // Save to localStorage
+
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
   
@@ -32,4 +32,5 @@ export const sendOtp = async ({ email }) => {
   export const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+      localStorage.removeItem('hasSyncedCart');
   };
