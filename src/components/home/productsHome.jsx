@@ -6,14 +6,16 @@ import StarRating from '../Custom bottons/starRating.jsx';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchAllProducts } from '../Redux/slices/ProductSlice.js';
 import "./productsHome.css";
-
+import { addToCart } from '../Redux/slices/CartSlice';
+import { toast } from 'react-toastify';
 const ProductsHome = () => {
      const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
     const [wishlistItems, setWishlistItems] = useState([]);
     const [selectedImages, setSelectedImages] = useState({});
-
+  const [selectedVariant, setSelectedVariant] = useState(null);
+   const [quantity, setQuantity] = useState(1);
     const dispatch = useDispatch();
     const { 
         allProducts = [], 
@@ -29,54 +31,55 @@ const ProductsHome = () => {
         'on-sale': 'on-sale'
     };
 
-    useEffect(() => {
-        // Initialize from localStorage
-        const initializeFromStorage = () => {
-            try {
-                const savedCart = localStorage.getItem("cart");
-                const savedWishlist = localStorage.getItem("wishlist");
-                if (savedCart) setCartItems(JSON.parse(savedCart));
-                if (savedWishlist) setWishlistItems(JSON.parse(savedWishlist));
-            } catch (e) {
-                console.error("Storage parse error:", e);
-            }
-        };
-        initializeFromStorage();
-    }, []);
+
 
     useEffect(() => {
-        // Fetch products when tab changes
+      
         const apiType = tabToApiTypeMap[activeTab];
         dispatch(fetchAllProducts({ type: apiType }));
     }, [dispatch, activeTab]);
     const productsToDisplay = Array.isArray(allProducts) ? allProducts : [];
 console.log('produc:',productsToDisplay);
 
-    const handleAddToCart = (product) => {
-        if (!product?._id) {
-            console.error("Invalid product:", product);
-            return;
-        }
+const handleAddToCart = (product) => {
 
-        const existingProduct = cartItems.find(item => item._id === product._id);
-        
-        if (existingProduct) {
-            alert(`${product.name || 'Product'} is already in your cart!`);
-            return;
-        }
+//   if (!token) {
+//     toast.error('Please log in to add items to your cart.');
+//     return;
+//   }
 
-        const productToAdd = {
-            ...product,
-            quantity: 1,
-            price: product.variants?.[0]?.price || product.price || 0,
-            image: product.images?.[0] || '/placeholder-product.jpg'
-        };
+  if (!product || !product._id || (!('basePrice' in product) && !('price' in product))) {
+    toast.error('Invalid product data: missing price information');
+    return;
+  }
 
-        const updatedCart = [...cartItems, productToAdd];
-        setCartItems(updatedCart);
-        localStorage.setItem("cart", JSON.stringify(updatedCart));
-        alert(`${product.name || 'Product'} added to cart!`);
-    };
+  const priceToUse = (selectedVariant?.price ?? product.basePrice ?? product.price);
+
+  const cartItem = {
+    productId: product._id,
+    variant: selectedVariant ? { ...selectedVariant } : null,
+    quantity: quantity || 1,
+    productData: {
+      _id: product._id,
+      name: product.name,
+      price: priceToUse,
+      basePrice: product.basePrice ?? product.price,
+      image: selectedVariant?.image || product.images?.[0],
+      brand: product.brand,
+    }
+  };
+
+  dispatch(addToCart(cartItem))
+    .unwrap()
+    .then(() => {
+      toast.success(`${product.name} added to cart successfully!`);
+      setQuantity(1);
+    })
+    .catch((error) => {
+      toast.error(`Failed to add to cart: ${error.message || 'Unknown error'}`);
+      console.error('Add to cart error:', error);
+    });
+};
 
     const handleImageOptionClick = (productId, image) => {
         setSelectedImages(prev => ({ 
